@@ -28,6 +28,17 @@ plot(pressure)
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 
-install.packages("ggplot2")
-library(ggplot2)
-jnkn
+install.packages("ggplot")
+library(ggplot)
+
+dbond1=a
+obs=b
+price=TRACE_PRICE[,7]
+price1=price[1:502,1]
+
+plot(obs,dbond1)
+line1 <- lm(dbond1~poly(obs,4,raw=TRUE))
+lines(predict(z),col="red")
+
+plot(obs,unlist(price1))
+
