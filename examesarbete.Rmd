@@ -31,14 +31,65 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 install.packages("ggplot")
 library(ggplot)
 
-dbond1=a
-obs=b
+##bond1 AT&T
+dbond=TRACE_PRICE[,8]
+dbond1=unlist(dbond[1:502,1])
+obs=(1:502)
 price=TRACE_PRICE[,7]
 price1=price[1:502,1]
+vol=TRACE_PRICE[,6]
+vol1=unlist(vol[1:502,1])
 
 plot(obs,dbond1)
 line1 <- lm(dbond1~poly(obs,4,raw=TRUE))
-lines(predict(z),col="red")
+lines(predict(line1),col="red")
 
 plot(obs,unlist(price1))
+plot(obs,vol1)
+
+volLine<-lm(vol1~poly(obs,4,raw=TRUE))
+lines(predict(volLine,col="red"))
+
+bidask=TRACE_DAILY[,12]
+bidask1=bidask[1:502,1]
+plot(obs,unlist(bidask1))
+lines(predict(baline,col="red"))
+baline<-lm(unlist(bidask1)~poly(obs,4,raw=TRUE))
+
+##bond2 AT&T
+price2=price[503:1002,1]
+dbond2=unlist(dbond[503:1002,1])
+obs2=(1:500)
+plot(obs2,dbond2)
+line2 <- lm(dbond2~poly(obs2,4,raw=TRUE))
+lines(predict(line2),col="red")
+
+plot(obs2,unlist(price2))
+
+bidask2=bidask[503:1002,1]
+plot(obs2,unlist(bidask2))
+lines(predict(baline2,col="red"))
+baline2<-lm(unlist(bidask2)~poly(obs2,4,raw=TRUE))
+
+##bond3 Tesla
+dbond3=unlist(dbond[76731:77206,1])
+obs3=(1:476)
+
+price3=price[76731:77206,1]
+vol=TRACE_PRICE[,6]
+vol3=unlist(vol[76731:77206,1])
+
+plot(obs3,dbond3)
+line3 <- lm(dbond3~poly(obs3,4,raw=TRUE))
+lines(predict(line3),col="red")
+
+plot(obs3,unlist(price3))
+plot(obs3,vol3)
+
+volLine3<-lm(vol3~poly(obs3,4,raw=TRUE))
+
+bidask3=bidask[76731:77206,1]
+plot(obs3,unlist(bidask3))
+lines(predict(baline3,col="red"))
+baline3<-lm(unlist(bidask3)~poly(obs3,4,raw=TRUE))
 
