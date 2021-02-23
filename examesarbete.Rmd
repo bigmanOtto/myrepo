@@ -31,6 +31,11 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 install.packages("ggplot")
 library(ggplot)
 
+date = as.Date.character(TRACE_DAILY$trd_exctn_dt[1:502], format = "%Y%m%d")
+price = TRACE_DAILY$price_avg[1:502]
+
+ggplot(data = NULL, aes(x=date, y=price)) +
+  geom_point(size = 0.5)
 ##bond1 AT&T
 dbond=TRACE_PRICE[,8]
 dbond1=unlist(dbond[1:502,1])
@@ -40,7 +45,7 @@ price1=price[1:502,1]
 vol=TRACE_PRICE[,6]
 vol1=unlist(vol[1:502,1])
 
-plot(obs,dbond1)
+plot(date,dbond1)
 line1 <- lm(dbond1~poly(obs,4,raw=TRUE))
 lines(predict(line1),col="red")
 
@@ -59,32 +64,35 @@ baline<-lm(unlist(bidask1)~poly(obs,4,raw=TRUE))
 ##bond2 AT&T
 price2=price[503:1002,1]
 dbond2=unlist(dbond[503:1002,1])
-obs2=(1:500)
-plot(obs2,dbond2)
-line2 <- lm(dbond2~poly(obs2,4,raw=TRUE))
+date2=as.Date.character(TRACE_DAILY$trd_exctn_dt[503:1002], format = "%Y%m%d")
+plot(date2,dbond2)
+line2 <- lm(dbond2~poly(date2,4,raw=TRUE))
 lines(predict(line2),col="red")
 
-plot(obs2,unlist(price2))
+plot(date2,unlist(price2))
 
 bidask2=bidask[503:1002,1]
 plot(obs2,unlist(bidask2))
 lines(predict(baline2,col="red"))
-baline2<-lm(unlist(bidask2)~poly(obs2,4,raw=TRUE))
+baline2<-lm(unlist(bidask2)~poly(date2,4,raw=TRUE))
 
 ##bond3 Tesla
 dbond3=unlist(dbond[76731:77206,1])
 obs3=(1:476)
+date3=s.Date.character(TRACE_DAILY$trd_exctn_dt[76731:77206], format = "%Y%m%d")
 
 price3=price[76731:77206,1]
+
+
 vol=TRACE_PRICE[,6]
 vol3=unlist(vol[76731:77206,1])
 
-plot(obs3,dbond3)
+plot(date3,dbond3)
 line3 <- lm(dbond3~poly(obs3,4,raw=TRUE))
 lines(predict(line3),col="red")
 
-plot(obs3,unlist(price3))
-plot(obs3,vol3)
+plot(date3,unlist(price3))
+plot(date3,vol3)
 
 volLine3<-lm(vol3~poly(obs3,4,raw=TRUE))
 
@@ -92,4 +100,50 @@ bidask3=bidask[76731:77206,1]
 plot(obs3,unlist(bidask3))
 lines(predict(baline3,col="red"))
 baline3<-lm(unlist(bidask3)~poly(obs3,4,raw=TRUE))
+
+##bond4
+
+dbond4=unlist(dbond[76230:76730,1])
+obs4=(1:501)
+date4=s.Date.character(TRACE_DAILY$trd_exctn_dt[76731:77206], format = "%Y%m%d")
+
+price4=price[76230:76730,1]
+
+
+
+vol4=unlist(vol[76230:76730,1])
+
+plot(obs4,dbond4)
+line4 <- lm(dbond4~poly(obs4,4,raw=TRUE))
+lines(predict(line4),col="red")
+
+plot(obs4,unlist(price4))
+plot(obs4,vol4)
+
+volLine4<-lm(vol4~poly(obs4,4,raw=TRUE))
+
+bidask4=bidask[76230:76730,1]
+plot(obs4,unlist(bidask4))
+lines(predict(baline4,col="red"))
+baline4<-lm(unlist(bidask4)~poly(obs4,4,raw=TRUE))
+
+##index corr
+
+index=Index_data[,5]
+index=unlist(index[1611:2112,1])
+index<-data.frame(index)
+index=unlist(index)
+index<-as.numeric(index)
+
+cor.test(dbond1,index)
+cor.test(dbond2,index)
+cor.test(dbond3,index)
+cor.test(dbond4,index)
+
+##coupon
+
+coupon=TRACE_DAILY_1_[,5]
+coupon=data.frame(coupon)
+coupon1=unlist(coupon[1:502,1])
+
 
