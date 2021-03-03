@@ -96,3 +96,4 @@ baline3<-lm(unlist(bidask3)~poly(obs3,4,raw=TRUE))
 
 adam = 1 
 adam1 = 2
+adam2 = 3 
