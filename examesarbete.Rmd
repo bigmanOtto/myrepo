@@ -93,3 +93,4 @@ plot(obs3,unlist(bidask3))
 lines(predict(baline3,col="red"))
 baline3<-lm(unlist(bidask3)~poly(obs3,4,raw=TRUE))
 
+
