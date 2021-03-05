@@ -24,14 +24,14 @@ index <- data.frame(sp500close = data$sp500_close[1:502],
 
 bond <- data[1:502,]
 
-plot.sp500 <- ggplot(data = index, aes(x = date, y = sp500close))+
+plot.sp5 <- ggplot(data = index, aes(x = date, y = sp500close))+
   geom_line(data = index, color = "red") + 
   coord_cartesian(ylim = c(2200, 3000))
 
-plot.bond <- ggplot(data = bond, aes(x=trd_exctn_dt, y=p_mid))+
+plot.b <- ggplot(data = bond, aes(x=trd_exctn_dt, y=p_mid))+
   geom_line(data = bond) 
 
-ggarrange(plot.sp500, plot.bond)
+ggarrange(plot.sp5, plot.b)
 
 cor.test(bond$p_mid, index$sp500close)
 
@@ -54,3 +54,30 @@ rolling$corr[width:502]<-rollapply(rolling, width = width, function(x) cor(as.nu
 ggplot(data=rolling, aes(x = date, y = corr)) + 
   geom_point(data = datatest, color = "red") + 
   geom_hline(yintercept = 0)
+
+#Plot indices logreturns together
+indices <- data.frame(Date = data$trd_exctn_dt[1:502],
+                      sp500 = data$sp500_logreturn[1:502],
+                      spbond = data$spbond_logreturn[1:502],
+                      russell3000 = data$russell_logreturn[1:502],
+                      smallcap = data$smallcap_logreturn[1:502])
+plot.sp500 <- ggplot(data=indices, aes(x=Date, y = sp500)) +
+  geom_line(data = indices) +
+  geom_hline(yintercept = 0) + 
+  labs(y = "log-return", title = "S&P 500")
+plot.spbond <- ggplot(data=indices, aes(x=Date, y=spbond))+
+  geom_line(data=indices) + 
+  geom_hline(yintercept = 0) + 
+  labs(y = "log-return", title = "S&P Bond index")
+plot.russell <- ggplot(data=indices, aes(x=Date, y=russell3000))+
+  geom_line(data=indices) + 
+  geom_hline(yintercept = 0) +
+  labs(y = "log-return", title = "Russell 3000")
+plot.smallcap <- ggplot(data=indices, aes(x=Date, y=smallcap))+
+  geom_line(data=indices) + 
+  geom_hline(yintercept = 0) + 
+  labs(y = "log-return", title = "Dow Jones U.S. Small cap index")
+
+ggarrange(plot.sp500, plot.russell, plot.smallcap, plot.spbond)
+
+
