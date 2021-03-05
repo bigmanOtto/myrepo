@@ -147,6 +147,7 @@ cor.test(dbond4,index[1:501])
 coupon=TRACE_DAILY_1_[,5]
 
 coupon1=unlist(coupon[1:502,1])
+
 coupon1=as.numeric(coupon1)
 
 
