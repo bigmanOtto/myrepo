@@ -2,13 +2,16 @@ install.packages("ggplot2")
 library(ggplot2)
 library(readxl)
 library(ggpubr)
+library(plyr)
+library(zoo)
 
 data <- read.csv("DAILY_all.csv")
+names(data)[names(data) == "ï..cusip_id"] <- "cusip_id"
 
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 subset <- data.frame(p = unlist(data$p_avg[1:10000]),  
                      date = unlist(data$trd_exctn_dt[1:10000]),
-                     cusip = unlist(data$ï..cusip_id[1:10000]))
+                     cusip = unlist(data$cusip_id[1:10000]))
 
 ggplot(data = subset, aes(x=date, y=p, color=cusip)) +
     geom_line(data = subset, size = 0.5)
@@ -19,7 +22,7 @@ index <- data.frame(sp500close = data$sp500_close[1:502],
                     sp500_logreturn = data$sp500_logreturn[1:502],
                     date = data$trd_exctn_dt[1:502])
 
-bond <- data[1:502,1:42]
+bond <- data[1:502,]
 
 plot.sp500 <- ggplot(data = index, aes(x = date, y = sp500close))+
   geom_line(data = index, color = "red") + 
@@ -30,18 +33,24 @@ plot.bond <- ggplot(data = bond, aes(x=trd_exctn_dt, y=p_mid))+
 
 ggarrange(plot.sp500, plot.bond)
 
-cor.test(bond$p_mid, index$close)
+cor.test(bond$p_mid, index$sp500close)
+
+# Correlation all bonds by XXX
+data.corr <-data.frame(cusip = data$cusip_id,
+                       type = data$type,
+                       d = data$d, 
+                       index = data$spbond_close)
+
+ddply(data.corr,"cusip",summarise,
+      corr=cor(d,index))
  
 #rolling correlation first bond and index
-bond_index_correlation <- function(x, window) {
-  merged_xts <- merge(x, index$close)
-  merged_xts$rolling_test <- rollapply(merged_xts, window,
-                                       function(x) cor(x[,1], x[,2], use = "pairwise.complete.obs"),
-                                       by.column = FALSE)
-  names(merged_xts)<-c("Bond price", "Index price", "Correlation")
-  merged_xts
-}
-
-bond_price <- data.frame(price = bond$p_mid,
-                         close = Index_data$close)
-bond_index_correlation(bond_price,20)
+rolling <- data.frame(date = data$trd_exctn_dt[1:502],
+                       bond = data$p_mid[1:502],
+                       index = data$spbond_close[1:502],
+                       corr = 0)
+width <- 30
+rolling$corr[width:502]<-rollapply(rolling, width = width, function(x) cor(as.numeric(x[,2]), as.numeric(x[,3]), use = "pairwise.complete.obs"), by.column=FALSE)
+ggplot(data=rolling, aes(x = date, y = corr)) + 
+  geom_point(data = datatest, color = "red") + 
+  geom_hline(yintercept = 0)
