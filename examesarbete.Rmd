@@ -101,6 +101,7 @@ plot(obs3,unlist(bidask3))
 lines(predict(baline3,col="red"))
 baline3<-lm(unlist(bidask3)~poly(obs3,4,raw=TRUE))
 
+<<<<<<< HEAD
 ##bond4
 
 dbond4=unlist(dbond[76230:76730,1])
@@ -168,7 +169,14 @@ cor.test(dbond[503:1002],bondindex[503:1002])
 
 cusip<-unlist(DAILY_all$cusip_id)
 
+
 data_frame<-data.frame(cusip ,dbond,bondindex)
 ddply(data_frame,"cusip",summarise,
   corr=cor.test(dbond,bondindex))
 
+=======
+
+adam = 1 
+adam1 = 2
+adam2 = 3 
+>>>>>>> f10bead7f364f97fbb40eddcee834567ca06c669
