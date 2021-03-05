@@ -1,8 +1,9 @@
 install.packages("ggplot2")
 library(ggplot2)
 library(readxl)
+library(ggpubr)
 
-data <- read.csv("TRACE_datastream_DAILY1.csv")
+data <- read.csv("DAILY_all.csv")
 
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 subset <- data.frame(p = unlist(data$p_avg[1:10000]),  
@@ -14,19 +15,20 @@ ggplot(data = subset, aes(x=date, y=p, color=cusip)) +
 
 
 # correlation first bond and index
-index <- Index_data[1:502,]
-index$date <- as.Date.character(index$date, format = "%Y%m%d")
-index$logreturn <- log(index$return)
+index <- data.frame(sp500close = data$sp500_close[1:502],
+                    sp500_logreturn = data$sp500_logreturn[1:502],
+                    date = data$trd_exctn_dt[1:502])
 
-bond <- data[1:502,1:29]
+bond <- data[1:502,1:42]
 
-ggplot(data = index, aes(x = date, y = close))+
-  geom_point(data = index, size = 0.5) + 
-  geom_smooth(data = index)
+plot.sp500 <- ggplot(data = index, aes(x = date, y = sp500close))+
+  geom_line(data = index, color = "red") + 
+  coord_cartesian(ylim = c(2200, 3000))
 
-ggplot(data = bond, aes(x=trd_exctn_dt, y=p_mid))+
-  geom_point(data = bond, size = 0.5)+
-  geom_smooth(data = bond)
+plot.bond <- ggplot(data = bond, aes(x=trd_exctn_dt, y=p_mid))+
+  geom_line(data = bond) 
+
+ggarrange(plot.sp500, plot.bond)
 
 cor.test(bond$p_mid, index$close)
  
