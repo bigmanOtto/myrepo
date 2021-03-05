@@ -131,19 +131,44 @@ baline4<-lm(unlist(bidask4)~poly(obs4,4,raw=TRUE))
 
 index=Index_data[,5]
 index=unlist(index[1611:2112,1])
-index<-data.frame(index)
-index=unlist(index)
+
 index<-as.numeric(index)
 
 cor.test(dbond1,index)
-cor.test(dbond2,index)
-cor.test(dbond3,index)
-cor.test(dbond4,index)
+
+#blir fel datum för dessa, 
+cor.test(dbond2,index[1:500])
+cor.test(dbond3,index[1:476])
+cor.test(dbond4,index[1:501])
 
 ##coupon
 
 coupon=TRACE_DAILY_1_[,5]
-coupon=data.frame(coupon)
-coupon1=unlist(coupon[1:502,1])
 
+coupon1=unlist(coupon[1:502,1])
+coupon1=as.numeric(coupon1)
+
+
+#new data
+dHY=unlist(DAILY_HY[,25])
+mean(dHY)
+
+dIG=unlist(DAILY_IG[,25])
+mean(dIG)
+
+##index correlation
+
+dbond<-unlist(DAILY_all$d)
+bondindex<-unlist(DAILY_all$spbond_close)
+cor.test(dbond,bondindex)
+
+cor.test(dbond[1:502],bondindex[1:502])
+
+cor.test(dbond[503:1002],bondindex[503:1002])
+
+cusip<-unlist(DAILY_all$cusip_id)
+
+data_frame<-data.frame(cusip ,dbond,bondindex)
+ddply(data_frame,"cusip",summarise,
+  corr=cor.test(dbond,bondindex))
 
