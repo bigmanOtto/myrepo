@@ -94,3 +94,24 @@ ggplot(data=test, aes(x=trd_exctn_dt, y=logreturns, color = cusip_id)) +
 
 log(data$p_avg[-1]/data$p_avg[-n])
 
+
+# Bid-ask plot
+
+subset$spread <- data$spread[1:10000]
+subsubset <- subset[1:5000,]
+ggplot(data = subsubset, aes(x = date, y = spread, color = cusip)) +
+  geom_line(data = subsubset)
+
+#d plot
+subsubset$d <- data$d[1:5000]
+subsubset$dbasis <- data$d_basis[1:5000]
+subsubset$log_d <- log(subsubset$d)
+ggplot(data = subsubset, aes(x = date, y = d, color = cusip)) +
+  geom_line(data = subsubset)
+ggplot(data = subsubset, aes(x = date, y = dbasis, color = cusip)) +
+  geom_line(data = subsubset)
+ggplot(data = subsubset, aes(x = date, y = log_d, color = cusip)) +
+  geom_line(data = subsubset)
+
+
+
