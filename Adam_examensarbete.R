@@ -38,17 +38,18 @@ cor.test(bond$p_mid, index$sp500close)
 # Correlation all bonds by XXX
 data.corr <-data.frame(cusip = data$cusip_id,
                        type = data$type,
+                       rating = data$credit,
                        d = data$d, 
                        index = data$spbond_close)
 
-ddply(data.corr,"cusip",summarise,
-      corr=cor(d,index))
+ddply(data.corr,"type",summarise,
+      corr=cor.test(d,index))
  
 #rolling correlation first bond and index
 rolling <- data.frame(date = data$trd_exctn_dt[1:502],
                        bond = data$p_mid[1:502],
                        index = data$spbond_close[1:502],
-                       corr = 0)
+                       corr = NA)
 width <- 30
 rolling$corr[width:502]<-rollapply(rolling, width = width, function(x) cor(as.numeric(x[,2]), as.numeric(x[,3]), use = "pairwise.complete.obs"), by.column=FALSE)
 ggplot(data=rolling, aes(x = date, y = corr)) + 
@@ -80,4 +81,16 @@ plot.smallcap <- ggplot(data=indices, aes(x=Date, y=smallcap))+
 
 ggarrange(plot.sp500, plot.russell, plot.smallcap, plot.spbond)
 
+# log-returns bonds, problem is to delete first log-ret for each cusip? 
+n <- length(unlist(data$p_mid))
+lreturn <- log(data$p_mid[-1]/data$p_mid[-n])
+data$logreturns <- 0
+data$logreturns[2:nrow(data)] <- lreturn 
+
+test <- data[1:502,]
+
+ggplot(data=test, aes(x=trd_exctn_dt, y=logreturns, color = cusip_id)) + 
+  geom_line(data = test)
+
+log(data$p_avg[-1]/data$p_avg[-n])
 
