@@ -96,7 +96,6 @@ log(data$p_avg[-1]/data$p_avg[-n])
 
 
 # Bid-ask plot
-
 subset$spread <- data$spread[1:10000]
 subsubset <- subset[1:5000,]
 ggplot(data = subsubset, aes(x = date, y = spread, color = cusip)) +
@@ -113,5 +112,20 @@ ggplot(data = subsubset, aes(x = date, y = dbasis, color = cusip)) +
 ggplot(data = subsubset, aes(x = date, y = log_d, color = cusip)) +
   geom_line(data = subsubset)
 
+# Illiq plot
+subsubset$illiq <- data$illiq_mid[1:5000]
+ggplot(data = subsubset, aes(x = date, y = illiq, color = cusip)) +
+  geom_line(data = subsubset) + 
+  coord_cartesian(ylim = c(0, 1e-9))
 
+# HHI plot
+subsubset$HHI <- data$HHI[1:5000]
+ggplot(data = subsubset, aes(x = date, y = HHI, color = cusip))+
+  geom_line(data = subsubset)
+
+# return index plot
+subsubset$rindex <- data$return_index[1:5000]
+ggplot(data = subsubset, aes(x = date, y = rindex, color = cusip)) + 
+  geom_line(data = subsubset ) + 
+  coord_cartesian(ylim = c(80, 150))
 
