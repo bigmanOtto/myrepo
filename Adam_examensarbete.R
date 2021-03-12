@@ -4,8 +4,10 @@ library(readxl)
 library(ggpubr)
 library(plyr)
 library(zoo)
+library(dplyr)
 
 data <- read.csv("DAILY_all.csv")
+data.full <- read.csv("TRACE.csv")
 names(data)[names(data) == "ï..cusip_id"] <- "cusip_id"
 
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
@@ -128,4 +130,8 @@ subsubset$rindex <- data$return_index[1:5000]
 ggplot(data = subsubset, aes(x = date, y = rindex, color = cusip)) + 
   geom_line(data = subsubset ) + 
   coord_cartesian(ylim = c(80, 150))
+
+# Counting number of trades for each bond (cusip) data.full = intraday data, data = daily data. 
+data %>% count(cusip_id, sort = TRUE)
+data.full %>% count(cusip_id, sort = TRUE)
 
