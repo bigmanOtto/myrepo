@@ -120,16 +120,16 @@ model.7$coefficients
 summary(model.7)
 confint(model.7)
 pred.7 <- data.frame(d = subset$d,
-                     smallcap = subset$smallcap_close,
-                     pred = predict(model.6, interval = "prediction"),
-                     conf = predict(model.6, interval = "confidence"),
-                     e = residuals(model.6))
+                     spbond = subset$spbond_close,
+                     pred = predict(model.7, interval = "prediction"),
+                     conf = predict(model.7, interval = "confidence"),
+                     e = residuals(model.7))
 
-ggplot(data = pred.6, aes(x = smallcap, y = d)) + 
-  geom_point(data = pred.6, size = 0.5) + 
-  geom_smooth(data = pred.6, method = lm, formula = y~x) +
-  geom_line(data = pred.6, aes(y = pred.lwr), color = "red", linetype = "dashed") +
-  geom_line(data = pred.6, aes(y = pred.upr), color = "red", linetype = "dashed")
+ggplot(data = pred.7, aes(x = spbond, y = d)) + 
+  geom_point(data = pred.7, size = 0.5) + 
+  geom_smooth(data = pred.7, method = lm, formula = y~x) +
+  geom_line(data = pred.7, aes(y = pred.lwr), color = "red", linetype = "dashed") +
+  geom_line(data = pred.7, aes(y = pred.upr), color = "red", linetype = "dashed")
 
 
 ## MULTI REGRESSION test ## 
