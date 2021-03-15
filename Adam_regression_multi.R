@@ -19,6 +19,12 @@ model.1.hist <- hist(model.1.data$coef.p_avg)
 model.1.significant <- data.frame(significant = sum(model.1.data$p_value < is_significant),
                             non_significant = sum(model.1.data$p_value >= is_significant))
 
+sd(model.1.data$coef.p_avg)
+mean(model.1.data$coef.p_avg)
+
+y <- dnorm(model.1.data$coef.p_avg, mean = mean(model.1.data$coef.p_avg), sd = sd(model.1.data$coef.p_avg))
+x <- seq(0,30,by=0.1)
+plot(x,y)
 
 ## d ~ vol_tot ## 
 model.2 <- lmList(d ~ vol_tot | cusip_id, data = data)
