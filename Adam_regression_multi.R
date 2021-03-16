@@ -112,7 +112,61 @@ ggplot(data = model.6.data, aes(x = coef.spread, y = dnorm)) +
 
 
 
+### HHI liquidity ###
+
+## HHI ~ p_avg ##
+
+model.7 <- lmList(HHI ~ p_avg | cusip_id, data = data)
+model.7.data <- data.frame(coef = coefficients(model.7),
+                           conf = confint(model.7),
+                           p_value = summary(model.7)$coef[,4,2],
+                           r_squared = summary(model.7)$r.squared)
+model.7.data$cusip <- row.names(model.7.data)
+model.7.data <- model.7.data[!is.na(model.7.data$coef.p_avg),]
+
+model.7.hist <- hist(model.7.data$coef.p_avg)
+model.7.significant <- data.frame(significant = sum(model.7.data$p_value < is_significant),
+                                  non_significant = sum(model.7.data$p_value >= is_significant))
+
+model.7.data$dnorm <- dnorm(model.7.data$coef.p_avg, mean = mean(model.7.data$coef.p_avg), sd = sd(model.7.data$coef.p_avg))
+ggplot(data = model.7.data, aes(x = coef.p_avg, y = dnorm)) +
+  geom_point(data = model.7.data)
 
 
+## HHI ~ vol_tot ##
 
+model.8 <- lmList(HHI ~ vol_tot | cusip_id, data = data)
+model.8.data <- data.frame(coef = coefficients(model.8),
+                           conf = confint(model.8),
+                           p_value = summary(model.8)$coef[,4,2],
+                           r_squared = summary(model.8)$r.squared)
+model.8.data$cusip <- row.names(model.8.data)
+model.8.data <- model.8.data[!is.na(model.8.data$coef.vol_tot),]
+
+model.8.hist <- hist(model.8.data$coef.vol_tot)
+model.8.significant <- data.frame(significant = sum(model.8.data$p_value < is_significant),
+                                  non_significant = sum(model.8.data$p_value >= is_significant))
+
+model.8.data$dnorm <- dnorm(model.8.data$coef.vol_tot, mean = mean(model.8.data$coef.vol_tot), sd = sd(model.8.data$coef.vol_tot))
+ggplot(data = model.8.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point(data = model.8.data)
+
+
+## HHI ~ vol_tot ##
+
+model.9 <- lmList(HHI ~ spread | cusip_id, data = data)
+model.9.data <- data.frame(coef = coefficients(model.9),
+                           conf = confint(model.9),
+                           p_value = summary(model.9)$coef[,4,2],
+                           r_squared = summary(model.9)$r.squared)
+model.9.data$cusip <- row.names(model.9.data)
+model.9.data <- model.9.data[!is.na(model.9.data$coef.spread),]
+
+model.9.hist <- hist(model.9.data$coef.spread)
+model.9.significant <- data.frame(significant = sum(model.9.data$p_value < is_significant),
+                                  non_significant = sum(model.9.data$p_value >= is_significant))
+
+model.9.data$dnorm <- dnorm(model.9.data$coef.spread, mean = mean(model.9.data$coef.spread), sd = sd(model.9.data$coef.spread))
+ggplot(data = model.9.data, aes(x = coef.spread, y = dnorm)) +
+  geom_point(data = model.9.data)
 
