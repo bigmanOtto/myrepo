@@ -19,12 +19,10 @@ model.1.hist <- hist(model.1.data$coef.p_avg)
 model.1.significant <- data.frame(significant = sum(model.1.data$p_value < is_significant),
                             non_significant = sum(model.1.data$p_value >= is_significant))
 
-sd(model.1.data$coef.p_avg)
-mean(model.1.data$coef.p_avg)
+model.1.data$dnorm <- dnorm(model.1.data$coef.p_avg, mean = mean(model.1.data$coef.p_avg), sd = sd(model.1.data$coef.p_avg))
+ggplot(data = model.1.data, aes(x = coef.p_avg, y = dnorm)) +
+  geom_point()
 
-y <- dnorm(model.1.data$coef.p_avg, mean = mean(model.1.data$coef.p_avg), sd = sd(model.1.data$coef.p_avg))
-x <- seq(0,30,by=0.1)
-plot(x,y)
 
 ## d ~ vol_tot ## 
 model.2 <- lmList(d ~ vol_tot | cusip_id, data = data)
@@ -38,6 +36,10 @@ model.2.hist <- hist(model.2.data$coef.vol_tot)
 model.2.significant <- data.frame(significant = sum(model.2.data$p_value < is_significant),
                                   non_significant = sum(model.2.data$p_value >= is_significant))
 
+model.2.data$dnorm <- dnorm(model.2.data$coef.vol_tot, mean = mean(model.2.data$coef.vol_tot), sd = sd(model.2.data$coef.vol_tot))
+ggplot(data = model.2.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
 
 ## d ~ spread ##  Fungerar inte eftersom vi inte har all spread data ... 
 model.3 <- lmList(d ~ spread | cusip_id, data = data)
@@ -50,6 +52,10 @@ model.3.data$cusip <- row.names(model.3.data)
 model.3.hist <- hist(model.3.data$coef.vol_tot)
 model.3.significant <- data.frame(significant = sum(model.3.data$p_value < is_significant),
                                   non_significant = sum(model.3.data$p_value >= is_significant))
+
+model.3.data$dnorm <- dnorm(model.3.data$coef.spread, mean = mean(model.3.data$coef.spread), sd = sd(model.3.data$coef.spread))
+ggplot(data = model.3.data, aes(x = coef.spread, y = dnorm)) +
+  geom_point()
 
 
 
@@ -67,6 +73,9 @@ model.4.hist <- hist(model.4.data$coef.p_avg, xlim = c(-6*10^-9, 1*10^-9))
 model.4.significant <- data.frame(significant = sum(model.4.data$p_value < is_significant),
                                   non_significant = sum(model.4.data$p_value >= is_significant))
 
+model.4.data$dnorm <- dnorm(model.4.data$coef.p_avg, mean = mean(model.4.data$coef.p_avg), sd = sd(model.4.data$coef.p_avg))
+ggplot(data = model.4.data, aes(x = coef.p_avg, y = dnorm)) +
+  geom_point()
 
 ## Illiq ~ vol_tot ## 
 model.5 <- lmList(illiq_mid ~ vol_tot | cusip_id, data = data)
@@ -80,6 +89,10 @@ model.5.hist <- hist(model.5.data$coef.vol_tot)
 model.5.significant <- data.frame(significant = sum(model.5.data$p_value < is_significant),
                                   non_significant = sum(model.5.data$p_value >= is_significant))
 
+model.5.data$dnorm <- dnorm(model.5.data$coef.vol_tot, mean = mean(model.5.data$coef.vol_tot), sd = sd(model.5.data$coef.vol_tot))
+ggplot(data = model.5.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
 
 ## Illiq ~ spread ##  Fungerar inte eftersom vi inte har all spread data ... 
 model.6 <- lmList(illiq_mid ~ spread | cusip_id, data = data)
@@ -92,6 +105,10 @@ model.6.data$cusip <- row.names(model.6.data)
 model.6.hist <- hist(model.6.data$coef.vol_tot)
 model.6.significant <- data.frame(significant = sum(model.6.data$p_value < is_significant),
                                   non_significant = sum(model.6.data$p_value >= is_significant))
+
+model.6.data$dnorm <- dnorm(model.6.data$coef.spread, mean = mean(model.6.data$coef.spread), sd = sd(model.6.data$coef.spread))
+ggplot(data = model.6.data, aes(x = coef.spread, y = dnorm)) +
+  geom_point()
 
 
 
