@@ -55,7 +55,7 @@ rolling <- data.frame(date = data$trd_exctn_dt[1:502],
 width <- 30
 rolling$corr[width:502]<-rollapply(rolling, width = width, function(x) cor(as.numeric(x[,2]), as.numeric(x[,3]), use = "pairwise.complete.obs"), by.column=FALSE)
 ggplot(data=rolling, aes(x = date, y = corr)) + 
-  geom_point(data = datatest, color = "red") + 
+  geom_point() + 
   geom_hline(yintercept = 0)
 
 #Plot indices logreturns together
