@@ -351,3 +351,21 @@ results.d <- data.frame(model = 1:18,
                         p_value2 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][3],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][3], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][3]),
                         p_value3 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][4],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][4], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][4]))
 
+
+
+
+
+
+
+##SPREAD TEST
+
+spread_max <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = trace, max)
+spread_min <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = trace, min)
+spread_max <- spread_max[which(spread$rpt_side_cd=='B'),]
+spread_min <- spread_min[which(spread$rpt_side_cd=='S'),]
+spread_max <- spread_max[with(spread_max, order(cusip_id, trd_exctn_dt)), ]
+spread_min <- spread_min[with(spread_min, order(cusip_id, trd_exctn_dt)), ]
+spread <- merge(spread_max, spread_min, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"))
+names(spread)[4] <- paste("ask")
+names(spread)[6] <- paste("bid")
+spread$spread <- spread$ask-spread$bid
