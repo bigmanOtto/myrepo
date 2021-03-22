@@ -36,6 +36,31 @@ spread_mean <- merge(spread_mean_B, spread_mean_S, by.x = c("cusip_id", "trd_exc
 names(spread_mean)[4] <- paste("Bid") 
 names(spread_mean)[6] <- paste("Ask")
 spread_mean$spread <- spread_mean$Ask - spread_mean$Bid
+spread_mean$trd_exctn_dt <- as.Date.character(spread_mean$trd_exctn_dt, format = "%Y%m%d")
+spread_mean <- spread_mean[spread_mean$spread > 0, ]
 
+ggplot(data = spread_mean[1:500,], aes(x = trd_exctn_dt, y = spread)) + 
+  geom_line() +
+  labs(x = "Date", y = "Spread", title = "Vår estimering")
+
+temp <- data[data$spread>0,]
+temp <- temp[!is.na(temp$spread),]
+temp <- merge(temp, spread_mean, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"))
+temp <- temp[which(temp$cusip_id == c('00206RBD3', '00206RCL4', '00206RCM2', 'U8810LAA1')),]
+
+ggplot() +
+  geom_line(data = temp, aes(x = trd_exctn_dt, y = spread.x, color = cusip_id)) +
+  geom_line(data = temp, aes(x = trd_exctn_dt, y = spread.y, color = cusip_id), linetype = "dashed" ) +
+  ylim(0,2)
+  
 
 ## Roll 1984 ## 
+test <- data.frame(cusip_id = data$cusip_id,
+                   date = data$trd_exctn_dt,
+                   p_avg = data$p_avg)
+test$p_avg_lag <- NA
+test$p_avg_lag[2:77206] <- diff(test$p_avg, lag = 1)
+
+acf <- acf(test$p_avg_lag[2:502], lag = 501, type = "correlation", plot = TRUE)
+
+
