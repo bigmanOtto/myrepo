@@ -170,10 +170,25 @@ cor.test(dbond[503:1002],bondindex[503:1002])
 
 cusip<-unlist(DAILY_all$cusip_id)
 
+rating<-unlist(DAILY_all$credit)
+
 
 data_frame<-data.frame(cusip ,dbond,bondindex)
 ddply(data_frame,"cusip",summarise,
   corr=cor.test(dbond,bondindex))
+  
+data_frame1<-data.frame(rating ,dbond,bondindex)
+ddply(data_frame1,"rating",summarise,
+  corr=cor.test(dbond,bondindex))
+
+## volume corr
+
+vol<-unlist(DAILY_all$vol_tot)
+
+data_frame2<-data.frame(cusip ,dbond,vol)
+
+ddply(data_frame2,"rating",summarise,
+  corr=cor.test(dbond,vol))
 
 =======
 
