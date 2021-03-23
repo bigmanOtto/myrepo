@@ -16,6 +16,7 @@ data <- aggregate(data.full[,c(23, 43, 15, 20, 19, 29,27,25)], list(data.full$cu
 names(data)[1] <- paste("cusip_id")
 data$rating <- aggregate(credit~cusip_id, data = data.full, FUN = head, 1)[,2]
 data$type <- aggregate(type~cusip_id, data = data.full, FUN = head, 1)[,2]
+data$vol_tot_100k <- data$vol_tot/100000
 
 
 ### HHI measure ###
@@ -453,15 +454,97 @@ pred.24 <- data.frame(HHI = data$HHI,
 
 
 
+## HHI ~ (p_avg)^2 ##
+
+model.25 <- lm(HHI ~ I(p_avg^2), data = data)
+summary(model.25)
+confint(model.25)
+pred.25 <- data.frame(HHI = data$HHI,
+                      p_avg = data$p_avg,
+                      pred = predict(model.25, interval = "prediction"),
+                      conf = predict(model.25, interval = "confidence"),
+                      e = residuals(model.25))
+
+ggplot(data = data, aes(x = p_avg, y = HHI)) + 
+  geom_point(size = 0.5) + 
+  geom_line(data = pred.25, aes(y = pred.lwr), color = "red", linetype = "dashed") +
+  geom_line(data = pred.25, aes(y = pred.upr), color = "red", linetype = "dashed") + 
+  geom_line(data = pred.25, aes(y = conf.fit), color = "blue") +
+  geom_ribbon(data = pred.25, aes(ymin = conf.lwr,
+                                  ymax = conf.upr), alpha = 0.3, fill = "green")
+
+
+## HHI ~ (vol_tot_100k)^2 ##
+
+model.26 <- lm(HHI ~ I(vol_tot_100k^2), data = data)
+summary(model.26)
+confint(model.26)
+pred.26 <- data.frame(HHI = data$HHI,
+                      vol_tot_100k = data$vol_tot_100k,
+                      pred = predict(model.26, interval = "prediction"),
+                      conf = predict(model.26, interval = "confidence"),
+                      e = residuals(model.26))
+
+ggplot(data = data, aes(x = vol_tot_100k, y = HHI)) + 
+  geom_point(size = 0.5) + 
+  geom_line(data = pred.26, aes(y = pred.lwr), color = "red", linetype = "dashed") +
+  geom_line(data = pred.26, aes(y = pred.upr), color = "red", linetype = "dashed") + 
+  geom_line(data = pred.26, aes(y = conf.fit), color = "blue") +
+  geom_ribbon(data = pred.26, aes(ymin = conf.lwr,
+                                  ymax = conf.upr), alpha = 0.3, fill = "green")
+
+
+## HHI ~ (spread)^2 ##
+
+model.27 <- lm(HHI ~ I(spread^2), data = data)
+summary(model.27)
+confint(model.27)
+pred.27 <- data.frame(HHI = data$HHI,
+                      spread = data$spread,
+                      pred = predict(model.27, interval = "prediction"),
+                      conf = predict(model.27, interval = "confidence"),
+                      e = residuals(model.27))
+
+ggplot(data = data, aes(x = spread, y = HHI)) + 
+  geom_point(size = 0.5) + 
+  geom_line(data = pred.27, aes(y = pred.lwr), color = "red", linetype = "dashed") +
+  geom_line(data = pred.27, aes(y = pred.upr), color = "red", linetype = "dashed") + 
+  geom_line(data = pred.27, aes(y = conf.fit), color = "blue") +
+  geom_ribbon(data = pred.27, aes(ymin = conf.lwr,
+                                  ymax = conf.upr), alpha = 0.3, fill = "green")
+
+## HHI ~ (trades)^2 ##
+
+model.28 <- lm(HHI ~ I(trades^2), data = data)
+summary(model.28)
+confint(model.28)
+pred.28 <- data.frame(HHI = data$HHI,
+                      trades = data$trades,
+                      pred = predict(model.28, interval = "prediction"),
+                      conf = predict(model.28, interval = "confidence"),
+                      e = residuals(model.28))
+
+ggplot(data = data, aes(x = trades, y = HHI)) + 
+  geom_point(size = 0.5) + 
+  geom_line(data = pred.28, aes(y = pred.lwr), color = "red", linetype = "dashed") +
+  geom_line(data = pred.28, aes(y = pred.upr), color = "red", linetype = "dashed") + 
+  geom_line(data = pred.28, aes(y = conf.fit), color = "blue") +
+  geom_ribbon(data = pred.28, aes(ymin = conf.lwr,
+                                  ymax = conf.upr), alpha = 0.3, fill = "green")
+
+
+
+
 ### SUMMARY HHI measure ### 
-results.HHI <- data.frame(model = 1:24,
-                            description = c("HHI~p_avg", "HHI~vol_tot", "HHI~spread", "HHI~p_diff", "HHI~trades", "HHI~vol_tot*p_avg", "log(HHI)~p_avg", "log(HHI)~vol_tot", "log(HHI)~spread", "log(HHI)~p_diff", "log(HHI)~trades", "log(HHI)~vol_tot*p_avg", "HHI~log(p_avg)", "HHI~log(vol_tot)", "HHI~log(spread)", "HHI~log(p_diff)", "HHI~log(trades)", "HHI~log(vol_tot)*log(p_avg)", "HHI~sqrt(p_avg)", "HHI~sqrt(vol_tot)", "HHI~sqrt(spread)", "HHI~sqrt(p_diff)", "HHI~sqrt(trades)", "HHI~sqrt(p_avg)*sqrt(vol_tot)"),
-                            beta0 = c(model.1$coefficients[1], model.2$coefficients[1], model.3$coefficients[1], model.4$coefficients[1], model.5$coefficients[1], model.6$coefficients[1], model.7$coefficients[1], model.8$coefficients[1], model.9$coefficients[1], model.10$coefficients[1], model.11$coefficients[1], model.12$coefficients[1], model.13$coefficients[1], model.14$coefficients[1], model.15$coefficients[1], model.16$coefficients[1], model.17$coefficients[1], model.18$coefficients[1], model.19$coefficients[1], model.20$coefficients[1], model.21$coefficients[1], model.22$coefficients[1], model.23$coefficients[1], model.24$coefficients[1]),
-                            beta1 =  c(model.1$coefficients[2], model.2$coefficients[2], model.3$coefficients[2], model.4$coefficients[2], model.5$coefficients[2], model.6$coefficients[2], model.7$coefficients[2], model.8$coefficients[2], model.9$coefficients[2], model.10$coefficients[2], model.11$coefficients[2], model.12$coefficients[2], model.13$coefficients[2], model.14$coefficients[2], model.15$coefficients[2], model.16$coefficients[2], model.17$coefficients[2], model.18$coefficients[2], model.19$coefficients[2], model.20$coefficients[2], model.21$coefficients[2], model.22$coefficients[2], model.23$coefficients[2], model.24$coefficients[2]),
-                            beta2 = c(NA, NA, NA, NA, NA, model.6$coefficients[3],NA,NA,NA,NA,NA, model.12$coefficients[3], NA, NA, NA, NA, NA, model.18$coefficients[3], NA, NA, NA, NA, NA, model.24$coefficients[3]),
-                            beta3 = c(NA, NA, NA, NA, NA, model.6$coefficients[4],NA,NA,NA,NA,NA, model.12$coefficients[4], NA, NA, NA, NA, NA, model.18$coefficients[4], NA, NA, NA, NA, NA, model.24$coefficients[4]),
-                            p_value1 = c(coef(summary(model.1))[,4][2], coef(summary(model.2))[,4][2], coef(summary(model.3))[,4][2], coef(summary(model.4))[,4][2], coef(summary(model.5))[,4][2], coef(summary(model.6))[,4][2], coef(summary(model.7))[,4][2], coef(summary(model.8))[,4][2], coef(summary(model.9))[,4][2], coef(summary(model.10))[,4][2], coef(summary(model.11))[,4][2], coef(summary(model.12))[,4][2], coef(summary(model.13))[,4][2], coef(summary(model.14))[,4][2], coef(summary(model.15))[,4][2], coef(summary(model.16))[,4][2], coef(summary(model.17))[,4][2], coef(summary(model.18))[,4][2], coef(summary(model.19))[,4][2], coef(summary(model.20))[,4][2], coef(summary(model.21))[,4][2], coef(summary(model.22))[,4][2], coef(summary(model.23))[,4][2], coef(summary(model.24))[,4][2]),
-                            p_value2 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][3],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][3], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][3], NA, NA, NA, NA, NA, coef(summary(model.24))[,4][3]),
-                            p_value3 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][4],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][4], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][4], NA, NA, NA, NA, NA, coef(summary(model.24))[,4][4] ))
+results.HHI <- data.frame(model = 1:28,
+                            description = c("HHI~p_avg", "HHI~vol_tot", "HHI~spread", "HHI~p_diff", "HHI~trades", "HHI~vol_tot*p_avg", "log(HHI)~p_avg", "log(HHI)~vol_tot", "log(HHI)~spread", "log(HHI)~p_diff", "log(HHI)~trades", "log(HHI)~vol_tot*p_avg", "HHI~log(p_avg)", "HHI~log(vol_tot)", "HHI~log(spread)", "HHI~log(p_diff)", "HHI~log(trades)", "HHI~log(vol_tot)*log(p_avg)", "HHI~sqrt(p_avg)", "HHI~sqrt(vol_tot)", "HHI~sqrt(spread)", "HHI~sqrt(p_diff)", "HHI~sqrt(trades)", "HHI~sqrt(p_avg)*sqrt(vol_tot)", "HHI~(p_avg)^2", "HHI~(vol_tot_100k)^2", "HHI~(spread)^2", "HHI~(trades)^2"),
+                            beta0 = c(model.1$coefficients[1], model.2$coefficients[1], model.3$coefficients[1], model.4$coefficients[1], model.5$coefficients[1], model.6$coefficients[1], model.7$coefficients[1], model.8$coefficients[1], model.9$coefficients[1], model.10$coefficients[1], model.11$coefficients[1], model.12$coefficients[1], model.13$coefficients[1], model.14$coefficients[1], model.15$coefficients[1], model.16$coefficients[1], model.17$coefficients[1], model.18$coefficients[1], model.19$coefficients[1], model.20$coefficients[1], model.21$coefficients[1], model.22$coefficients[1], model.23$coefficients[1], model.24$coefficients[1], model.25$coefficients[1], model.26$coefficients[1], model.27$coefficients[1], model.28$coefficients[1]),
+                            beta1 =  c(model.1$coefficients[2], model.2$coefficients[2], model.3$coefficients[2], model.4$coefficients[2], model.5$coefficients[2], model.6$coefficients[2], model.7$coefficients[2], model.8$coefficients[2], model.9$coefficients[2], model.10$coefficients[2], model.11$coefficients[2], model.12$coefficients[2], model.13$coefficients[2], model.14$coefficients[2], model.15$coefficients[2], model.16$coefficients[2], model.17$coefficients[2], model.18$coefficients[2], model.19$coefficients[2], model.20$coefficients[2], model.21$coefficients[2], model.22$coefficients[2], model.23$coefficients[2], model.24$coefficients[2], model.25$coefficients[2], model.26$coefficients[2], model.27$coefficients[2], model.28$coefficients[2]),
+                            beta2 = c(NA, NA, NA, NA, NA, model.6$coefficients[3],NA,NA,NA,NA,NA, model.12$coefficients[3], NA, NA, NA, NA, NA, model.18$coefficients[3], NA, NA, NA, NA, NA, model.24$coefficients[3], NA, NA, NA, NA),
+                            beta3 = c(NA, NA, NA, NA, NA, model.6$coefficients[4],NA,NA,NA,NA,NA, model.12$coefficients[4], NA, NA, NA, NA, NA, model.18$coefficients[4], NA, NA, NA, NA, NA, model.24$coefficients[4], NA, NA, NA, NA),
+                            p_value1 = c(coef(summary(model.1))[,4][2], coef(summary(model.2))[,4][2], coef(summary(model.3))[,4][2], coef(summary(model.4))[,4][2], coef(summary(model.5))[,4][2], coef(summary(model.6))[,4][2], coef(summary(model.7))[,4][2], coef(summary(model.8))[,4][2], coef(summary(model.9))[,4][2], coef(summary(model.10))[,4][2], coef(summary(model.11))[,4][2], coef(summary(model.12))[,4][2], coef(summary(model.13))[,4][2], coef(summary(model.14))[,4][2], coef(summary(model.15))[,4][2], coef(summary(model.16))[,4][2], coef(summary(model.17))[,4][2], coef(summary(model.18))[,4][2], coef(summary(model.19))[,4][2], coef(summary(model.20))[,4][2], coef(summary(model.21))[,4][2], coef(summary(model.22))[,4][2], coef(summary(model.23))[,4][2], coef(summary(model.24))[,4][2], coef(summary(model.25))[,4][2], coef(summary(model.26))[,4][2], coef(summary(model.27))[,4][2], coef(summary(model.28))[,4][2]),
+                            p_value2 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][3],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][3], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][3], NA, NA, NA, NA, NA, coef(summary(model.24))[,4][3], NA, NA, NA, NA),
+                            p_value3 = c(NA, NA, NA, NA, NA, coef(summary(model.6))[,4][4],NA,NA,NA,NA,NA, coef(summary(model.12))[,4][4], NA, NA, NA, NA, NA, coef(summary(model.18))[,4][4], NA, NA, NA, NA, NA, coef(summary(model.24))[,4][4], NA, NA, NA, NA))
+
 
 
