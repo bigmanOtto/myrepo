@@ -6,6 +6,7 @@ trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
 names(trades)[3] <- paste("trades")
 
 data <- DAILY_all
+data <- data[!is.na(data$illiq_mid),]
 data$trades <- trades$trades
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
@@ -130,3 +131,121 @@ model.7.significant <- data.frame(significant = sum(model.7.data$p_value < is_si
 model.7.data$dnorm <- dnorm(model.7.data$coef.vol_tot, mean = mean(model.7.data$coef.vol_tot), sd = sd(model.7.data$coef.vol_tot))
 ggplot(data = model.7.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
+
+##illiq_mid~p_avg+sqrt(vol_tot)##
+
+model.9 <- lmList(illiq_mid ~ sqrt(vol_tot) + p_avg | cusip_id, data = data)
+model.9.data <- data.frame(coef = coefficients(model.9),
+                           conf = confint(model.9),
+                           p_value = summary(model.9)$coef[,4,2],
+                           r_squared = summary(model.9)$r.squared)
+model.9.data$cusip <- row.names(model.9.data)
+
+model.9.hist <- hist(model.9.data$coef.sqrt.vol_tot)
+model.9.significant <- data.frame(significant = sum(model.9.data$p_value < is_significant),
+                                  non_significant = sum(model.9.data$p_value >= is_significant))
+
+model.9.data$dnorm <- dnorm(model.9.data$coef.vol_tot, mean = mean(model.9.data$coef.sqrt.vol_tot), sd = sd(model.9.data$coef.vol_tot))
+ggplot(data = model.9.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~sqrt(p_avg)+sqrt(vol_tot)##
+
+model.10 <- lmList(illiq_mid ~ sqrt(vol_tot) + sqrt(p_avg) | cusip_id, data = data)
+model.10.data <- data.frame(coef = coefficients(model.10),
+                            conf = confint(model.10),
+                            p_value = summary(model.10)$coef[,4,2],
+                            r_squared = summary(model.10)$r.squared)
+model.10.data$cusip <- row.names(model.10.data)
+
+model.10.hist <- hist(model.10.data$coef.sqrt.vol_tot)
+model.10.significant <- data.frame(significant = sum(model.10.data$p_value < is_significant),
+                                   non_significant = sum(model.10.data$p_value >= is_significant))
+
+model.10.data$dnorm <- dnorm(model.10.data$coef.vol_tot, mean = mean(model.10.data$coef.sqrt.vol_tot), sd = sd(model.10.data$coef.vol_tot))
+ggplot(data = model.10.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~p_avg+log(vol_tot)##
+
+model.11 <- lmList(illiq_mid ~ log(vol_tot) + p_avg | cusip_id, data = data)
+model.11.data <- data.frame(coef = coefficients(model.11),
+                            conf = confint(model.11),
+                            p_value = summary(model.11)$coef[,4,2],
+                            r_squared = summary(model.11)$r.squared)
+model.11.data$cusip <- row.names(model.11.data)
+
+model.11.hist <- hist(model.11.data$coef.log.vol_tot)
+model.11.significant <- data.frame(significant = sum(model.11.data$p_value < is_significant),
+                                   non_significant = sum(model.11.data$p_value >= is_significant))
+
+model.11.data$dnorm <- dnorm(model.11.data$coef.log.vol_tot, mean = mean(model.11.data$coef.log.vol_tot), sd = sd(model.11.data$coef.vol_tot))
+ggplot(data = model.11.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~log(p_avg)+log(vol_tot)##
+
+model.12 <- lmList(illiq_mid ~ log(vol_tot) + log(p_avg) | cusip_id, data = data)
+model.12.data <- data.frame(coef = coefficients(model.12),
+                            conf = confint(model.12),
+                            p_value = summary(model.12)$coef[,4,2],
+                            r_squared = summary(model.12)$r.squared)
+model.12.data$cusip <- row.names(model.12.data)
+
+model.12.hist <- hist(model.12.data$coef.log.vol_tot)
+model.12.significant <- data.frame(significant = sum(model.12.data$p_value < is_significant),
+                                   non_significant = sum(model.12.data$p_value >= is_significant))
+
+model.12.data$dnorm <- dnorm(model.12.data$coef.log.vol_tot, mean = mean(model.12.data$coef.log.vol_tot), sd = sd(model.12.data$coef.vol_tot))
+ggplot(data = model.12.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~vol_tot by rating##
+model.13 <- lmList(illiq_mid ~ vol_tot | credit, data = data)
+model.13.data <- data.frame(coef = coefficients(model.13),
+                            conf = confint(model.13),
+                            p_value = summary(model.13)$coef[,4,2],
+                            r_squared = summary(model.13)$r.squared)
+model.13.data$rating <- row.names(model.13.data)
+
+model.13.hist <- hist(model.13.data$coef.vol_tot)
+model.13.significant <- data.frame(significant = sum(model.13.data$p_value < is_significant),
+                                   non_significant = sum(model.13.data$p_value >= is_significant))
+
+model.13.data$dnorm <- dnorm(model.13.data$coef.vol_tot, mean = mean(model.13.data$coef.vol_tot), sd = sd(model.13.data$coef.vol_tot))
+ggplot(data = model.13.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~log(vol_tot) by rating##
+model.14 <- lmList(illiq_mid ~ log(vol_tot) | credit, data = data)
+model.14.data <- data.frame(coef = coefficients(model.14),
+                            conf = confint(model.14),
+                            p_value = summary(model.14)$coef[,4,2],
+                            r_squared = summary(model.14)$r.squared)
+model.14.data$rating <- row.names(model.14.data)
+
+model.14.hist <- hist(model.14.data$coef.log.vol_tot)
+model.14.significant <- data.frame(significant = sum(model.14.data$p_value < is_significant),
+                                   non_significant = sum(model.14.data$p_value >= is_significant))
+
+model.14.data$dnorm <- dnorm(model.14.data$coef.log.vol_tot, mean = mean(model.14.data$coef.log.vol_tot), sd = sd(model.14.data$coef.vol_tot))
+ggplot(data = model.14.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~sqrt(vol_tot) by rating##
+model.15 <- lmList(illiq_mid ~ sqrt(vol_tot) | credit, data = data)
+model.15.data <- data.frame(coef = coefficients(model.15),
+                            conf = confint(model.15),
+                            p_value = summary(model.15)$coef[,4,2],
+                            r_squared = summary(model.15)$r.squared)
+model.15.data$rating <- row.names(model.15.data)
+
+model.15.hist <- hist(model.15.data$coef.sqrt.vol_tot)
+model.15.significant <- data.frame(significant = sum(model.15.data$p_value < is_significant),
+                                   non_significant = sum(model.15.data$p_value >= is_significant))
+
+model.15.data$dnorm <- dnorm(model.15.data$coef.sqrt.vol_tot, mean = mean(model.15.data$coef.vol_tot), sd = sd(model.15.data$coef.sqrt.vol_tot))
+ggplot(data = model.15.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+
