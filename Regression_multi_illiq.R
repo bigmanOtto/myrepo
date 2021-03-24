@@ -247,5 +247,53 @@ model.15.significant <- data.frame(significant = sum(model.15.data$p_value < is_
 model.15.data$dnorm <- dnorm(model.15.data$coef.sqrt.vol_tot, mean = mean(model.15.data$coef.vol_tot), sd = sd(model.15.data$coef.sqrt.vol_tot))
 ggplot(data = model.15.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
+##illiq_mid~p_avg by rating##
+model.16 <- lmList(illiq_mid ~ p_avg | credit, data = data)
+model.16.data <- data.frame(coef = coefficients(model.16),
+                            conf = confint(model.16),
+                            p_value = summary(model.16)$coef[,4,2],
+                            r_squared = summary(model.16)$r.squared)
+model.16.data$rating <- row.names(model.16.data)
+
+model.16.hist <- hist(model.16.data$coef.p_avg)
+model.16.significant <- data.frame(significant = sum(model.16.data$p_value < is_significant),
+                                   non_significant = sum(model.16.data$p_value >= is_significant))
+
+model.16.data$dnorm <- dnorm(model.16.data$coef.p_avg, mean = mean(model.16.data$coef.p_avg), sd = sd(model.16.data$coef.p_avg))
+ggplot(data = model.16.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~log(p_avg) by rating##
+model.17 <- lmList(illiq_mid ~ log(p_avg) | credit, data = data)
+model.17.data <- data.frame(coef = coefficients(model.17),
+                            conf = confint(model.17),
+                            p_value = summary(model.17)$coef[,4,2],
+                            r_squared = summary(model.17)$r.squared)
+model.17.data$rating <- row.names(model.17.data)
+
+model.17.hist <- hist(model.17.data$coef.log.p_avg)
+model.17.significant <- data.frame(significant = sum(model.17.data$p_value < is_significant),
+                                   non_significant = sum(model.17.data$p_value >= is_significant))
+
+model.17.data$dnorm <- dnorm(model.17.data$coef.log.p_avg, mean = mean(model.17.data$coef.log.p_avg), sd = sd(model.17.data$coef.log.p_avg))
+ggplot(data = model.17.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~sqrt(p_avg) by rating##
+model.18 <- lmList(illiq_mid ~ sqrt(vol_tot) | credit, data = data)
+model.18.data <- data.frame(coef = coefficients(model.18),
+                            conf = confint(model.18),
+                            p_value = summary(model.18)$coef[,4,2],
+                            r_squared = summary(model.18)$r.squared)
+model.18.data$rating <- row.names(model.18.data)
+
+model.18.hist <- hist(model.18.data$coef.sqrt.p_avg)
+model.18.significant <- data.frame(significant = sum(model.18.data$p_value < is_significant),
+                                   non_significant = sum(model.18.data$p_value >= is_significant))
+
+model.18.data$dnorm <- dnorm(model.18.data$coef.sqrt.p_avg, mean = mean(model.18.data$coef.p_avg), sd = sd(model.18.data$coef.log.p_avg))
+ggplot(data = model.18.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
 
 
