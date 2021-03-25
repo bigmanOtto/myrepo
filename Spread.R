@@ -1,6 +1,7 @@
 #### CALCULATE SPREAD #### 
+library(imputeTS)
 
-trace <- read.csv("TRACE.csv")
+  trace <- read.csv("TRACE.csv")
 trades <- aggregate(type~cusip_id+trd_exctn_dt, data = trace, FUN = function(x){NROW(x)})
 trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
 names(trades)[3] <- paste("trades")
@@ -38,10 +39,38 @@ names(spread_mean)[6] <- paste("Ask")
 spread_mean$spread <- spread_mean$Ask - spread_mean$Bid
 spread_mean$trd_exctn_dt <- as.Date.character(spread_mean$trd_exctn_dt, format = "%Y%m%d")
 spread_mean <- spread_mean[spread_mean$spread > 0, ]
+spread_mean <- spread_mean[!is.na(spread_mean$spread), ]
+
+
+data <- merge(data, spread_mean, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"), all = TRUE)
 
 ggplot(data = spread_mean[1:500,], aes(x = trd_exctn_dt, y = spread)) + 
   geom_line() +
   labs(x = "Date", y = "Spread", title = "Vår estimering")
+
+
+test <- data.frame(test = na_kalman(data$spread.y))
+Not <- data[is.na(data$spread.y), ]
+bond <- data[data$cusip_id == '03674XAC0',]
+bond <- bond[!is.na(bond$spread.y), ]
+data$test <- test$test
+
+ggplot(data = bond, aes(x = trd_exctn_dt, y = spread.y)) +
+  geom_point() +
+  geom_line()
+
+ggplot(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test)) +
+  geom_point() + 
+  geom_line()
+
+ggplot() + 
+  geom_point(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test), color = "red") +
+  geom_point(data = bond, aes(x = trd_exctn_dt, y = spread.y)) + 
+  geom_line(data = bond, aes(x = trd_exctn_dt, y = spread.y))  
+  
+
+test <- aggregate(spread.y~cusip_id, data = data, FUN = function(x){na_kalman(x)})
+
 
 temp <- data[data$spread>0,]
 temp <- temp[!is.na(temp$spread),]
