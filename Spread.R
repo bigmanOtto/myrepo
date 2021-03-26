@@ -1,7 +1,7 @@
 #### CALCULATE SPREAD #### 
 library(imputeTS)
 
-  trace <- read.csv("TRACE.csv")
+trace <- read.csv("TRACE.csv")
 trades <- aggregate(type~cusip_id+trd_exctn_dt, data = trace, FUN = function(x){NROW(x)})
 trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
 names(trades)[3] <- paste("trades")
@@ -53,21 +53,26 @@ test <- data.frame(test = na_kalman(data$spread.y))
 Not <- data[is.na(data$spread.y), ]
 bond <- data[data$cusip_id == '03674XAC0',]
 bond <- bond[!is.na(bond$spread.y), ]
+bond1 <- data[data$cusip_id == '00287YAQ2',]
+bond1 <- bond1[!is.na(bond$spread.y), ]
 data$test <- test$test
 
-ggplot(data = bond, aes(x = trd_exctn_dt, y = spread.y)) +
-  geom_point() +
-  geom_line()
-
-ggplot(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test)) +
-  geom_point() + 
-  geom_line()
 
 ggplot() + 
-  geom_point(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test), color = "red") +
-  geom_point(data = bond, aes(x = trd_exctn_dt, y = spread.y)) + 
+  geom_point(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test), color = "red", size = 1) +
+  geom_point(data = bond, aes(x = trd_exctn_dt, y = spread.y), size = 1) + 
+  geom_line(data = data[7606:8099,], aes(x = trd_exctn_dt, y = test), color = "red") +
   geom_line(data = bond, aes(x = trd_exctn_dt, y = spread.y))  
+
   
+ggplot() + 
+  geom_point(data = data[4008:4508, ], aes(x = trd_exctn_dt, y = test), color = "red", size = 1) +
+  geom_point(data = bond1, aes(x = trd_exctn_dt, y = spread.y), size = 1) + 
+  geom_line(data = data[4008:4508,], aes(x = trd_exctn_dt, y = test), color = "red") +
+  geom_line(data = bond1, aes(x = trd_exctn_dt, y = spread.y))  
+
+h <- hist(data$test)
+h1 <- hist(data$spread.y)
 
 test <- aggregate(spread.y~cusip_id, data = data, FUN = function(x){na_kalman(x)})
 
