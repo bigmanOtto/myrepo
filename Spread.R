@@ -11,6 +11,38 @@ names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 data$trades <- trades$trades
 
+## S_median - B_median  ## 
+median <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = trace, FUN = function(x){median(x)})
+median_B <- median[which(median$rpt_side_cd=='B'),]
+median_S <- median[which(median$rpt_side_cd=='S'),]
+median <- merge(median_B, median_S, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"))
+names(median)[3] <- paste("Buyer")
+names(median)[4] <- paste("Bid") 
+names(median)[5] <- paste("Seller")
+names(median)[6] <- paste("Ask")
+median$spread_median <- median$Ask - median$Bid
+median$trd_exctn_dt <- as.Date.character(median$trd_exctn_dt, format = "%Y%m%d")
+median <- median[median$spread_median > 0, ]
+median <- median[median$spread_median <= 1.5, ]
+median <- median[!is.na(median$spread_median), ]
+
+data <- merge(data, median, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"), all = TRUE)
+statsNA(data$spread_median)
+histogram <- hist(data$spread_median)
+
+
+kalman <- data.frame(kalman = na_kalman(data$spread_median, model = "auto.arima", smooth = TRUE))
+data$spread_kalman <- kalman$kalman
+
+
+
+
+
+
+
+
+
+
 
 
 ## S_min - B_max ## 
@@ -41,38 +73,41 @@ spread_mean$trd_exctn_dt <- as.Date.character(spread_mean$trd_exctn_dt, format =
 spread_mean <- spread_mean[spread_mean$spread > 0, ]
 spread_mean <- spread_mean[!is.na(spread_mean$spread), ]
 
-
 data <- merge(data, spread_mean, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"), all = TRUE)
+statsNA(data$spread.y)
 
 ggplot(data = spread_mean[1:500,], aes(x = trd_exctn_dt, y = spread)) + 
   geom_line() +
   labs(x = "Date", y = "Spread", title = "Vår estimering")
 
 
-test <- data.frame(test = na_kalman(data$spread.y))
+test <- data.frame(test = aggregate(spread.y~cusip_id, data = data, FUN = function(x){na_kalman(x, model = "auto.arima")}))
+
+kalman <- data.frame(spread = na_kalman(data$spread.y, model = "auto.arima"))
+data$kalman <- kalman$spread
+
+
 Not <- data[is.na(data$spread.y), ]
 bond <- data[data$cusip_id == '03674XAC0',]
 bond <- bond[!is.na(bond$spread.y), ]
 bond1 <- data[data$cusip_id == '00287YAQ2',]
 bond1 <- bond1[!is.na(bond$spread.y), ]
-data$test <- test$test
+
 
 
 ggplot() + 
-  geom_point(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = test), color = "red", size = 1) +
+  geom_point(data = data[7606:8099, ], aes(x = trd_exctn_dt, y = kalman), color = "red", size = 1) +
   geom_point(data = bond, aes(x = trd_exctn_dt, y = spread.y), size = 1) + 
-  geom_line(data = data[7606:8099,], aes(x = trd_exctn_dt, y = test), color = "red") +
-  geom_line(data = bond, aes(x = trd_exctn_dt, y = spread.y))  
+  geom_line(data = bond, aes(x = trd_exctn_dt, y = spread.y)) 
 
   
 ggplot() + 
-  geom_point(data = data[4008:4508, ], aes(x = trd_exctn_dt, y = test), color = "red", size = 1) +
+  geom_point(data = data[4008:4508, ], aes(x = trd_exctn_dt, y = kalman), color = "red", size = 1) +
   geom_point(data = bond1, aes(x = trd_exctn_dt, y = spread.y), size = 1) + 
-  geom_line(data = data[4008:4508,], aes(x = trd_exctn_dt, y = test), color = "red") +
   geom_line(data = bond1, aes(x = trd_exctn_dt, y = spread.y))  
 
-h <- hist(data$test)
-h1 <- hist(data$spread.y)
+h <- hist(data$kalman, main = "Histogram Kalman smoothing")
+h1 <- hist(data$spread.y, main = "Histogram mean diff")
 
 test <- aggregate(spread.y~cusip_id, data = data, FUN = function(x){na_kalman(x)})
 
@@ -86,15 +121,48 @@ ggplot() +
   geom_line(data = temp, aes(x = trd_exctn_dt, y = spread.x, color = cusip_id)) +
   geom_line(data = temp, aes(x = trd_exctn_dt, y = spread.y, color = cusip_id), linetype = "dashed" ) +
   ylim(0,2)
-  
 
-## Roll 1984 ## 
-test <- data.frame(cusip_id = data$cusip_id,
-                   date = data$trd_exctn_dt,
-                   p_avg = data$p_avg)
-test$p_avg_lag <- NA
-test$p_avg_lag[2:77206] <- diff(test$p_avg, lag = 1)
+######## TEST
 
-acf <- acf(test$p_avg_lag[2:502], lag = 501, type = "correlation", plot = TRUE)
+upr <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = trace, FUN = function(x){quantile(x, 0.9)})
+upr_B <- upr[which(upr$rpt_side_cd=='B'),]
+names(upr_B)[3] <- paste("upr_B_ind")
+names(upr_B)[4] <- paste("upr_B")
+upr_S <- upr[which(upr$rpt_side_cd=='S'),]
+names(upr_S)[3] <- paste("upr_S_ind")
+names(upr_S)[4] <- paste("upr_S")
+test <- merge(trace, upr_B, by.x = c("cusip_id", "trd_exctn_dt", "rpt_side_cd"), by.y = c("cusip_id", "trd_exctn_dt", "upr_B_ind"), all = TRUE)
+test <- merge(test, upr_S, by.x = c("cusip_id", "trd_exctn_dt", "rpt_side_cd"), by.y = c("cusip_id", "trd_exctn_dt", "upr_S_ind"), all = TRUE)
 
 
+lwr <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = trace, FUN = function(x){quantile(x, 0.1)})
+lwr_B <- lwr[which(lwr$rpt_side_cd=='B'),]
+names(lwr_B)[3] <- paste("lwr_B_ind")
+names(lwr_B)[4] <- paste("lwr_B")
+lwr_S <- lwr[which(lwr$rpt_side_cd=='S'),]
+names(lwr_S)[3] <- paste("lwr_S_ind")
+names(lwr_S)[4] <- paste("lwr_S")
+test <- merge(test, lwr_B, by.x = c("cusip_id", "trd_exctn_dt", "rpt_side_cd"), by.y = c("cusip_id", "trd_exctn_dt", "lwr_B_ind"), all = TRUE)
+test <- merge(test, lwr_S, by.x = c("cusip_id", "trd_exctn_dt", "rpt_side_cd"), by.y = c("cusip_id", "trd_exctn_dt", "lwr_S_ind"), all = TRUE)
+
+
+test$upr <- ifelse(is.na(test$upr_B), test$upr_S, test$upr_B)
+test$lwr <- ifelse(is.na(test$lwr_B), test$lwr_S, test$lwr_B)
+test <- test[test$rptd_pr < test$upr, ]
+test <- test[test$rptd_pr > test$lwr, ]
+
+mean <- aggregate(rptd_pr~cusip_id+trd_exctn_dt+rpt_side_cd, data = test, mean)
+mean_B <- mean[which(mean$rpt_side_cd=='B'),]
+mean_S <- mean[which(mean$rpt_side_cd=='S'),]
+mean <- merge(mean_B, mean_S, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"))
+names(mean)[4] <- paste("Bid") 
+names(mean)[6] <- paste("Ask")
+mean$spread <- mean$Ask - mean$Bid
+mean$trd_exctn_dt <- as.Date.character(mean$trd_exctn_dt, format = "%Y%m%d")
+mean <- mean[mean$spread > 0, ]
+mean <- mean[!is.na(mean$spread), ]
+names(mean)[7] <- paste("spread_quantile")
+
+data <- merge(data, mean, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"), all = TRUE)
+statsNA(data$spread_quantile)
+h3 <- hist(mean$spread_quantile)
