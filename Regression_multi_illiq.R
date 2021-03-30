@@ -6,8 +6,9 @@ trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
 names(trades)[3] <- paste("trades")
 
 data <- DAILY_all
-data <- data[!is.na(data$illiq_mid),]
 data$trades <- trades$trades
+data <- data[!is.na(data$illiq_mid),]
+
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
