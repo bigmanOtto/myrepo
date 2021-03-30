@@ -6,8 +6,9 @@ trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
 names(trades)[3] <- paste("trades")
 
 data <- DAILY_all
-data <- data[!is.na(data$HHI),]
 data$trades <- trades$trades
+data <- data[!is.na(data$HHI),]
+
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
@@ -95,7 +96,7 @@ model.5.hist <- hist(model.5.data$coef.trades)
 model.5.significant <- data.frame(significant = sum(model.5.data$p_value < is_significant),
                                   non_significant = sum(model.5.data$p_value >= is_significant))
 
-model.5.data$dnorm <- dnorm(model.5.data$coef.vol_tot, mean = mean(model.5.data$coef.vol_tot), sd = sd(model.5.data$coef.vol_tot))
+model.5.data$dnorm <- dnorm(model.5.data$coef.trades, mean = mean(model.5.data$coef.trades), sd = sd(model.5.data$coef.trades))
 ggplot(data = model.5.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
 
@@ -294,5 +295,85 @@ model.18.significant <- data.frame(significant = sum(model.18.data$p_value < is_
 
 model.18.data$dnorm <- dnorm(model.18.data$coef.sqrt.p_avg, mean = mean(model.18.data$coef.p_avg), sd = sd(model.18.data$coef.log.p_avg))
 ggplot(data = model.18.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##HHI~log(trades)##
+model.19 <- lmList(HHI ~ log(trades) | cusip_id, data = data)
+model.19.data <- data.frame(coef = coefficients(model.19),
+                           conf = confint(model.19),
+                           p_value = summary(model.19)$coef[,4,2],
+                           r_squared = summary(model.19)$r.squared)
+model.19.data$cusip <- row.names(model.19.data)
+
+model.19.hist <- hist(model.19.data$coef.log.trades)
+model.19.significant <- data.frame(significant = sum(model.19.data$p_value < is_significant),
+                                  non_significant = sum(model.19.data$p_value >= is_significant))
+
+model.19.data$dnorm <- dnorm(model.19.data$coef.log.trades, mean = mean(model.19.data$coef.log.trades), sd = sd(model.19.data$coef.log.trades))
+ggplot(data = model.19.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##HHI~sqrt(trades)##
+model.20 <- lmList(HHI ~ sqrt(trades) | cusip_id, data = data)
+model.20.data <- data.frame(coef = coefficients(model.20),
+                           conf = confint(model.20),
+                           p_value = summary(model.20)$coef[,4,2],
+                           r_squared = summary(model.20)$r.squared)
+model.20.data$cusip <- row.names(model.20.data)
+
+model.20.hist <- hist(model.20.data$coef.sqrt.trades)
+model.20.significant <- data.frame(significant = sum(model.20.data$p_value < is_significant),
+                                  non_significant = sum(model.20.data$p_value >= is_significant))
+
+model.20.data$dnorm <- dnorm(model.20.data$coef.sqrt.trades, mean = mean(model.20.data$coef.sqrt.trades), sd = sd(model.20.data$coef.sqrt.trades))
+ggplot(data = model.20.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##HHI~log(trades)+log(vol_tot)+p_avg##
+model.21 <- lmList(HHI ~ log(trades)+log(vol_tot)+p_avg | cusip_id, data = data)
+model.21.data <- data.frame(coef = coefficients(model.21),
+                            conf = confint(model.21),
+                            p_value = summary(model.21)$coef[,4,2],
+                            r_squared = summary(model.21)$r.squared)
+model.21.data$cusip <- row.names(model.21.data)
+
+model.21.hist <- hist(model.21.data$coef.log.trades)
+model.21.significant <- data.frame(significant = sum(model.21.data$p_value < is_significant),
+                                   non_significant = sum(model.21.data$p_value >= is_significant))
+
+model.21.data$dnorm <- dnorm(model.21.data$coef.log.trades, mean = mean(model.21.data$coef.log.trades), sd = sd(model.21.data$coef.log.trades))
+ggplot(data = model.21.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##HHI~trades+log(vol_tot)+p_avg##
+model.22 <- lmList(HHI ~ trades+log(vol_tot)+p_avg | cusip_id, data = data)
+model.22.data <- data.frame(coef = coefficients(model.22),
+                            conf = confint(model.22),
+                            p_value = summary(model.22)$coef[,4,2],
+                            r_squared = summary(model.22)$r.squared)
+model.22.data$cusip <- row.names(model.22.data)
+
+model.22.hist <- hist(model.22.data$coef.log.trades)
+model.22.significant <- data.frame(significant = sum(model.22.data$p_value < is_significant),
+                                   non_significant = sum(model.22.data$p_value >= is_significant))
+
+model.22.data$dnorm <- dnorm(model.22.data$coef.log.trades, mean = mean(model.22.data$coef.log.trades), sd = sd(model.22.data$coef.log.trades))
+ggplot(data = model.22.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##HHI~sqrt(trades)+log(vol_tot)+p_avg##
+model.23 <- lmList(HHI ~ sqrt(trades)+log(vol_tot)+p_avg | cusip_id, data = data)
+model.23.data <- data.frame(coef = coefficients(model.23),
+                            conf = confint(model.23),
+                            p_value = summary(model.23)$coef[,4,2],
+                            r_squared = summary(model.23)$r.squared)
+model.23.data$cusip <- row.names(model.23.data)
+
+model.23.hist <- hist(model.23.data$coef.log.trades)
+model.23.significant <- data.frame(significant = sum(model.23.data$p_value < is_significant),
+                                   non_significant = sum(model.23.data$p_value >= is_significant))
+
+model.23.data$dnorm <- dnorm(model.23.data$coef.log.trades, mean = mean(model.23.data$coef.log.trades), sd = sd(model.23.data$coef.log.trades))
+ggplot(data = model.23.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
 
