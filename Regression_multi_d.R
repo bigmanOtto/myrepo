@@ -7,6 +7,7 @@ names(trades)[3] <- paste("trades")
 
 data <- DAILY_all
 data$trades <- trades$trades
+data$spread1 <- unlist(kalman)
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
@@ -48,7 +49,7 @@ ggplot(data = model.2.data, aes(x = coef.vol_tot, y = dnorm)) +
 
 
 ## d ~ spread ##  Fungerar inte eftersom vi inte har all spread data ... 
-model.3 <- lmList(d ~ spread | cusip_id, data = data)
+model.3 <- lmList(d ~ spread1 | cusip_id, data = data)
 model.3.data <- data.frame(coef = coefficients(model.3),
                            conf = confint(model.3),
                            p_value = summary(model.3)$coef[,4,2],
@@ -388,5 +389,39 @@ model.23.significant <- data.frame(significant = sum(model.23.data$p_value < is_
 
 model.23.data$dnorm <- dnorm(model.23.data$coef.log.trades, mean = mean(model.23.data$coef.log.trades), sd = sd(model.23.data$coef.log.trades))
 ggplot(data = model.23.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##d~p_avg+log(vol_tot)+spread##
+
+model.24 <- lmList(d ~ log(vol_tot) + p_avg + spread1 | cusip_id, data = data)
+model.24.data <- data.frame(coef = coefficients(model.24),
+                            conf = confint(model.24),
+                            p_value = summary(model.24)$coef[,4,2],
+                            r_squared = summary(model.24)$r.squared)
+model.24.data$cusip <- row.names(model.24.data)
+
+model.24.hist <- hist(model.24.data$coef.log.vol_tot)
+model.24.significant <- data.frame(significant = sum(model.24.data$p_value < is_significant),
+                                   non_significant = sum(model.24.data$p_value >= is_significant))
+
+model.24.data$dnorm <- dnorm(model.24.data$coef.log.vol_tot, mean = mean(model.24.data$coef.log.vol_tot), sd = sd(model.24.data$coef.vol_tot))
+ggplot(data = model.24.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##d~p_avg+log(vol_tot)+sqrt(spread)##
+
+model.25 <- lmList(d ~ log(vol_tot) + p_avg + sqrt(spread1) | cusip_id, data = data)
+model.25.data <- data.frame(coef = coefficients(model.25),
+                            conf = confint(model.25),
+                            p_value = summary(model.25)$coef[,4,2],
+                            r_squared = summary(model.25)$r.squared)
+model.25.data$cusip <- row.names(model.25.data)
+
+model.25.hist <- hist(model.25.data$coef.log.vol_tot)
+model.25.significant <- data.frame(significant = sum(model.25.data$p_value < is_significant),
+                                   non_significant = sum(model.25.data$p_value >= is_significant))
+
+model.25.data$dnorm <- dnorm(model.25.data$coef.log.vol_tot, mean = mean(model.25.data$coef.log.vol_tot), sd = sd(model.25.data$coef.vol_tot))
+ggplot(data = model.25.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
 

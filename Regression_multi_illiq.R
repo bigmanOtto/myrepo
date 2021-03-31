@@ -7,6 +7,7 @@ names(trades)[3] <- paste("trades")
 
 data <- DAILY_all
 data$trades <- trades$trades
+data$spread1 <- unlist(kalman)
 data <- data[!is.na(data$illiq_mid),]
 
 names(data)[1] <- paste("cusip_id")
@@ -295,6 +296,42 @@ model.18.significant <- data.frame(significant = sum(model.18.data$p_value < is_
 model.18.data$dnorm <- dnorm(model.18.data$coef.sqrt.p_avg, mean = mean(model.18.data$coef.p_avg), sd = sd(model.18.data$coef.log.p_avg))
 ggplot(data = model.18.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
+
+
+##illiq_mid~p_avg+log(vol_tot)+spread##
+
+model.24 <- lmList(illiq_mid ~ log(vol_tot) + p_avg + spread1 | cusip_id, data = data)
+model.24.data <- data.frame(coef = coefficients(model.24),
+                            conf = confint(model.24),
+                            p_value = summary(model.24)$coef[,4,2],
+                            r_squared = summary(model.24)$r.squared)
+model.24.data$cusip <- row.names(model.24.data)
+
+model.24.hist <- hist(model.24.data$coef.log.vol_tot)
+model.24.significant <- data.frame(significant = sum(model.24.data$p_value < is_significant),
+                                   non_significant = sum(model.24.data$p_value >= is_significant))
+
+model.24.data$dnorm <- dnorm(model.24.data$coef.log.vol_tot, mean = mean(model.24.data$coef.log.vol_tot), sd = sd(model.24.data$coef.vol_tot))
+ggplot(data = model.24.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+##illiq_mid~p_avg+log(vol_tot)+sqrt(spread)##
+
+model.25 <- lmList(illiq_mid ~ log(vol_tot) + p_avg + sqrt(spread1) | cusip_id, data = data)
+model.25.data <- data.frame(coef = coefficients(model.25),
+                            conf = confint(model.25),
+                            p_value = summary(model.25)$coef[,4,2],
+                            r_squared = summary(model.25)$r.squared)
+model.25.data$cusip <- row.names(model.25.data)
+
+model.25.hist <- hist(model.25.data$coef.log.vol_tot)
+model.25.significant <- data.frame(significant = sum(model.25.data$p_value < is_significant),
+                                   non_significant = sum(model.25.data$p_value >= is_significant))
+
+model.25.data$dnorm <- dnorm(model.25.data$coef.log.vol_tot, mean = mean(model.25.data$coef.log.vol_tot), sd = sd(model.25.data$coef.vol_tot))
+ggplot(data = model.25.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
 
 
 
