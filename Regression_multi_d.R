@@ -425,3 +425,23 @@ model.25.data$dnorm <- dnorm(model.25.data$coef.log.vol_tot, mean = mean(model.2
 ggplot(data = model.25.data, aes(x = coef.vol_tot, y = dnorm)) +
   geom_point()
 
+##d~p_avg+log(vol_tot)+spread^2##
+
+model.26 <- lmList(d ~ log(vol_tot) + p_avg + (spread1)^2 | cusip_id, data = data)
+model.26.data <- data.frame(coef = coefficients(model.26),
+                            conf = confint(model.26),
+                            p_value = summary(model.26)$coef[,4,2],
+                            r_squared = summary(model.26)$r.squared)
+model.26.data$cusip <- row.names(model.26.data)
+
+model.26.hist <- hist(model.26.data$coef.log.vol_tot)
+model.26.significant <- data.frame(significant = sum(model.26.data$p_value < is_significant),
+                                   non_significant = sum(model.26.data$p_value >= is_significant))
+
+model.26.data$dnorm <- dnorm(model.26.data$coef.log.vol_tot, mean = mean(model.26.data$coef.log.vol_tot), sd = sd(model.26.data$coef.vol_tot))
+ggplot(data = model.26.data, aes(x = coef.vol_tot, y = dnorm)) +
+  geom_point()
+
+
+
+
