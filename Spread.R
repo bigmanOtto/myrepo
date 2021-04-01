@@ -34,7 +34,17 @@ histogram <- hist(data$spread_median)
 kalman <- data.frame(kalman = na_kalman(data$spread_median, model = "auto.arima", smooth = TRUE))
 data$spread_kalman <- kalman$kalman
 
-
+ggplot_na_imputations(bond$spread_median,
+                    bond$spread_kalman,
+                    x_axis_labels = bond$trd_exctn_dt,
+                    title = "Imputation with Kalman filter and ARIMA",
+                    subtitle = "Cusip Id: 382550BG5",
+                    ylab = "Spread",
+                    color_points = "black",
+                    color_imputations = "red",
+                    label_known = "Known values",
+                    label_imputations = "Imputed values",
+                    theme = ggplot2::aes())
 
 
 
