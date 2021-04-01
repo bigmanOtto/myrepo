@@ -21,7 +21,8 @@ model.1 <- lmList(d ~ p_avg | cusip_id, data = data)
 model.1.data <- data.frame(coef = coefficients(model.1),
                            conf = confint(model.1),
                            p_value = summary(model.1)$coef[,4,2],
-                           r_squared = summary(model.1)$r.squared)
+                           r_squared = summary(model.1)$r.squared,
+                           r_squared_adj = matrix(unlist(summary(model.1)$adj.r.squared), nrow=length(summary(model.1)$adj.r.squared), byrow=TRUE))
 model.1.data$cusip <- row.names(model.1.data)
 
 model.1.hist <- hist(model.1.data$coef.p_avg)
@@ -434,6 +435,191 @@ ggplot(data = model.26.data, aes(x = coef.vol_tot, y = dnorm)) +
 
 
 
+## d ~ log(p_avg) ## 
+model.27 <- lmList(d ~ log(p_avg) | cusip_id, data = data)
+model.27.data <- data.frame(coef = coefficients(model.27),
+                           conf = confint(model.27),
+                           p_value = summary(model.27)$coef[,4,2],
+                           r_squared = summary(model.27)$r.squared)
+model.27.data$cusip <- row.names(model.27.data)
+
+model.27.hist <- hist(model.27.data$coef.log.p_avg)
+model.27.significant <- data.frame(significant = sum(model.27.data$p_value < is_significant),
+                                  non_significant = sum(model.27.data$p_value >= is_significant))
+
+model.27.data$dnorm <- dnorm(model.27.data$coef.log.p_avg., mean = mean(model.27.data$coef.log.p_avg.), sd = sd(model.27.data$coef.log.p_avg.))
+ggplot(data = model.27.data, aes(x = coef.log.p_avg., y = dnorm)) +
+  geom_point()
+
+## d ~ sqrt(p_avg) ## 
+model.28 <- lmList(d ~ sqrt(p_avg) | cusip_id, data = data)
+model.28.data <- data.frame(coef = coefficients(model.28),
+                            conf = confint(model.28),
+                            p_value = summary(model.28)$coef[,4,2],
+                            r_squared = summary(model.28)$r.squared)
+model.28.data$cusip <- row.names(model.28.data)
+
+model.28.hist <- hist(model.28.data$coef.sqrt.p_avg.)
+model.28.significant <- data.frame(significant = sum(model.28.data$p_value < is_significant),
+                                   non_significant = sum(model.28.data$p_value >= is_significant))
+
+model.28.data$dnorm <- dnorm(model.28.data$coef.sqrt.p_avg., mean = mean(model.28.data$coef.sqrt.p_avg.), sd = sd(model.28.data$coef.sqrt.p_avg.))
+ggplot(data = model.28.data, aes(x = coef.sqrt.p_avg., y = dnorm)) +
+  geom_point()
 
 
+## d ~ log(spread) ## 
+model.29 <- lmList(d ~ log(spread1) | cusip_id, data = data)
+model.29.data <- data.frame(coef = coefficients(model.29),
+                            conf = confint(model.29),
+                            p_value = summary(model.29)$coef[,4,2],
+                            r_squared = summary(model.29)$r.squared)
+model.29.data$cusip <- row.names(model.29.data)
+
+model.29.hist <- hist(model.29.data$coef.log.spread1.)
+model.29.significant <- data.frame(significant = sum(model.29.data$p_value < is_significant),
+                                   non_significant = sum(model.29.data$p_value >= is_significant))
+
+model.29.data$dnorm <- dnorm(model.29.data$coef.log.spread1., mean = mean(model.29.data$coef.log.spread1.), sd = sd(model.29.data$coef.log.spread1.))
+ggplot(data = model.29.data, aes(x = coef.log.spread1., y = dnorm)) +
+  geom_point()
+
+## d ~ sqrt(spread) ## 
+model.30 <- lmList(d ~ sqrt(spread1) | cusip_id, data = data)
+model.30.data <- data.frame(coef = coefficients(model.30),
+                            conf = confint(model.30),
+                            p_value = summary(model.30)$coef[,4,2],
+                            r_squared = summary(model.30)$r.squared)
+model.30.data$cusip <- row.names(model.30.data)
+
+model.30.hist <- hist(model.30.data$coef.sqrt.spread1.)
+model.30.significant <- data.frame(significant = sum(model.30.data$p_value < is_significant),
+                                   non_significant = sum(model.30.data$p_value >= is_significant))
+
+model.30.data$dnorm <- dnorm(model.30.data$coef.sqrt.spread1., mean = mean(model.30.data$coef.sqrt.spread1.), sd = sd(model.30.data$coef.sqrt.spread1.))
+ggplot(data = model.30.data, aes(x = coef.sqrt.spread1., y = dnorm)) +
+  geom_point()
+
+
+## d ~ spread + vol_tot ## 
+model.31 <- lmList(d ~ spread1 + vol_tot | cusip_id, data = data)
+model.31.data <- data.frame(coef = coefficients(model.31),
+                            conf = confint(model.31),
+                            p_value = summary(model.31)$coef[,4,2:3],
+                            r_squared = summary(model.31)$r.squared)
+model.31.data$cusip <- row.names(model.31.data)
+
+model.31.significant <- data.frame(significant.spread = sum(model.31.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.31.data$p_value.spread1 >= is_significant),
+                                   significant.vol_tot = sum(model.31.data$p_value.vol_tot < is_significant),
+                                   non_significant.spread.vol_tot = sum(model.31.data$p_value.vol_tot >= is_significant))
+
+## d ~ spread + log(vol_tot) ## 
+model.32 <- lmList(d ~ spread1 + log(vol_tot) | cusip_id, data = data)
+model.32.data <- data.frame(coef = coefficients(model.32),
+                            conf = confint(model.32),
+                            p_value = summary(model.32)$coef[,4,2:3],
+                            r_squared = summary(model.32)$r.squared)
+model.32.data$cusip <- row.names(model.32.data)
+
+model.32.significant <- data.frame(significant.spread = sum(model.32.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.32.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.32.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.spread.log.vol_tot = sum(model.32.data$p_value.log.vol_tot. >= is_significant))
+
+
+## d ~ spread + sqrt(vol_tot) ## 
+model.33 <- lmList(d ~ spread1 + sqrt(vol_tot) | cusip_id, data = data)
+model.33.data <- data.frame(coef = coefficients(model.33),
+                            conf = confint(model.33),
+                            p_value = summary(model.33)$coef[,4,2:3],
+                            r_squared = summary(model.33)$r.squared)
+model.33.data$cusip <- row.names(model.33.data)
+
+model.33.significant <- data.frame(significant.spread = sum(model.33.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.33.data$p_value.spread1 >= is_significant),
+                                   significant.sqrt.vol_tot = sum(model.33.data$p_value.sqrt.vol_tot. < is_significant),
+                                   non_significant.spread.sqrt.vol_tot = sum(model.33.data$p_value.sqrt.vol_tot. >= is_significant))
+
+
+
+## d ~ spread + log(vol_tot) + trades## 
+model.34 <- lmList(d ~ spread1 + log(vol_tot) + trades | cusip_id, data = data)
+model.34.data <- data.frame(coef = coefficients(model.34),
+                            conf = confint(model.34),
+                            p_value = summary(model.34)$coef[,4,2:4],
+                            r_squared = summary(model.34)$r.squared)
+model.34.data$cusip <- row.names(model.34.data)
+
+model.34.significant <- data.frame(significant.spread = sum(model.34.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.34.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.34.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.34.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.trades = sum(model.34.data$p_value.trades < is_significant),
+                                   non_significant.trades = sum(model.34.data$p_value.trades >= is_significant))
+
+
+## d ~ spread + log(vol_tot) + log(trades)## 
+model.35 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) | cusip_id, data = data)
+model.35.data <- data.frame(coef = coefficients(model.35),
+                            conf = confint(model.35),
+                            p_value = summary(model.35)$coef[,4,2:4],
+                            r_squared = summary(model.35)$r.squared)
+model.35.data$cusip <- row.names(model.35.data)
+
+model.35.significant <- data.frame(significant.spread = sum(model.35.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.35.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.35.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.35.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.35.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.35.data$p_value.log.trades >= is_significant))
+
+
+## d ~ spread + log(vol_tot) + sqrt(trades)## 
+model.36 <- lmList(d ~ spread1 + log(vol_tot) + sqrt(trades) | cusip_id, data = data)
+model.36.data <- data.frame(coef = coefficients(model.36),
+                            conf = confint(model.36),
+                            p_value = summary(model.36)$coef[,4,2:4],
+                            r_squared = summary(model.36)$r.squared)
+model.36.data$cusip <- row.names(model.36.data)
+
+model.36.significant <- data.frame(significant.spread = sum(model.36.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.36.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.36.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.36.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.sqrt.trades = sum(model.36.data$p_value.sqrt.trades < is_significant),
+                                   non_significant.sqrt.trades = sum(model.36.data$p_value.sqrt.trades >= is_significant))
+
+
+## d ~ spread + sqrt(vol_tot) + log(trades)## 
+model.37 <- lmList(d ~ spread1 + sqrt(vol_tot) + log(trades) | cusip_id, data = data)
+model.37.data <- data.frame(coef = coefficients(model.37),
+                            conf = confint(model.37),
+                            p_value = summary(model.37)$coef[,4,2:4],
+                            r_squared = summary(model.37)$r.squared)
+model.37.data$cusip <- row.names(model.37.data)
+
+model.37.significant <- data.frame(significant.spread = sum(model.37.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.37.data$p_value.spread1 >= is_significant),
+                                   significant.sqrt.vol_tot = sum(model.37.data$p_value.sqrt.vol_tot. < is_significant),
+                                   non_significant.sqrt.vol_tot = sum(model.37.data$p_value.sqrt.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.37.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.37.data$p_value.log.trades >= is_significant))
+
+
+
+## d ~ spread + log(vol_tot) + log(trades):p_avg## 
+model.test <- lmList(d ~ spread1 + log(vol_tot) + log(trades):p_avg | cusip_id, data = data)
+model.test.data <- data.frame(coef = coefficients(model.test),
+                            conf = confint(model.test),
+                            p_value = summary(model.test)$coef[,4,2:4],
+                            r_squared = summary(model.test)$r.squared)
+model.test.data$cusip <- row.names(model.test.data)
+
+model.test.significant <- data.frame(significant.spread = sum(model.test.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.test.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.test.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.vol_tot = sum(model.test.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades.p_avg = sum(model.test.data$p_value.log.trades..p_avg < is_significant),
+                                   non_significant.log.trades.p_avg = sum(model.test.data$p_value.log.trades..p_avg >= is_significant))
 
