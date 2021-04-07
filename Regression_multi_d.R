@@ -12,9 +12,19 @@ names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
 
+names(data)[50] <- paste("russell3000_std")
+data[30:77206,50] <- rollapply(data$russell_logreturn, FUN = sd, width = 30, na.rm=TRUE)
+data <- data %>% group_by(cusip_id) %>%
+  mutate(russell3000_std = case_when(row_number() < 30 ~ NA_real_, TRUE ~ russell3000_std))
+
+data[1:29,51] <- NA 
+data[30:77206,51] <- rollapply(data$spbond_logreturn, FUN = sd, width = 30, na.rm=TRUE)
+data <- data %>% group_by(cusip_id) %>%
+  mutate(spbond_std = case_when(row_number() < 30 ~ NA_real_, TRUE ~ spbond_std))
 
 
-### d liquidity ###
+
++### d liquidity ###
 
 ## d ~ p_avg ## 
 model.1 <- lmList(d ~ p_avg | cusip_id, data = data)
@@ -351,8 +361,9 @@ ggplot(data = model.20.data, aes(x = coef.sqrt.trades., y = dnorm)) +
   geom_point()
 
 ##d~p_avg + log(vol_tot) + log(trades)##
-model.21 <- lmList(d ~ p_avg + log(vol_tot) + log(trades) | cusip_id, data = data)
-model.21.data <- data.frame(coef = coefficients(model.21),
+model.21 <- lmList(d ~ p_avg + log(vol_tot) + log(trades) | cusip_id, data = model.21.dataset)
+model.21.data <- data.frame(row = 1:163,
+                            coef = coefficients(model.21),
                             conf = confint(model.21),
                             p_value = summary(model.21)$coef[,4,2:4],
                             r_squared = summary(model.21)$r.squared,
@@ -366,9 +377,28 @@ model.21.significant <- data.frame(significant.p_avg = sum(model.21.data$p_value
                                    significant.log.trades = sum(model.21.data$p_value.log.trades. < is_significant),
                                    non_significant.log.trades = sum(model.21.data$p_value.log.trades. >= is_significant))
 
+
+model.21.exclude <- data.frame(cusip_id = row.names(model.21.data),
+                               p_avg = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               total = 0)
+
+model.21.rows.1 <- model.21.data[model.21.data$cusip %in% row.names(model.21.data[model.21.data$p_value.p_avg > is_significant, ]), ]
+model.21.rows.2 <- model.21.data[model.21.data$cusip %in% row.names(model.21.data[model.21.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.21.rows.3 <- model.21.data[model.21.data$cusip %in% row.names(model.21.data[model.21.data$p_value.log.trades. > is_significant, ]), ]
+model.21.exclude[model.21.rows.1$row, 2] <- 1
+model.21.exclude[model.21.rows.2$row, 3] <- 1
+model.21.exclude[model.21.rows.3$row, 4] <- 1
+model.21.exclude$total <- model.21.exclude$p_avg + model.21.exclude$log.vol_tot + model.21.exclude$log.trades
+model.21.exclude <- data.frame(cusip_id = model.21.exclude[model.21.exclude$total == 3, 1])
+model.21.dataset <- data[!data$cusip_id %in% model.21.exclude$cusip_id,]
+
+
 ##d~p_avg + log(vol_tot) + trades##
-model.22 <- lmList(d ~ p_avg + log(vol_tot) + trades | cusip_id, data = data)
-model.22.data <- data.frame(coef = coefficients(model.22),
+model.22 <- lmList(d ~ p_avg + log(vol_tot) + trades | cusip_id, data = model.22.dataset)
+model.22.data <- data.frame(row = 1:156,
+                            coef = coefficients(model.22),
                             conf = confint(model.22),
                             p_value = summary(model.22)$coef[,4,2:4],
                             r_squared = summary(model.22)$r.squared,
@@ -383,9 +413,30 @@ model.22.significant <- data.frame(significant.p_avg = sum(model.22.data$p_value
                                    non_significant.trades = sum(model.22.data$p_value.trades >= is_significant))
 
 
+
+model.22.exclude <- data.frame(cusip_id = row.names(model.22.data),
+                               p_avg = 0,
+                               log.vol_tot = 0,
+                               trades = 0,
+                               total = 0)
+
+model.22.rows.1 <- model.22.data[model.22.data$cusip %in% row.names(model.22.data[model.22.data$p_value.p_avg > is_significant, ]), ]
+model.22.rows.2 <- model.22.data[model.22.data$cusip %in% row.names(model.22.data[model.22.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.22.rows.3 <- model.22.data[model.22.data$cusip %in% row.names(model.22.data[model.22.data$p_value.trades > is_significant, ]), ]
+model.22.exclude[model.22.rows.1$row, 2] <- 1
+model.22.exclude[model.22.rows.2$row, 3] <- 1
+model.22.exclude[model.22.rows.3$row, 4] <- 1
+model.22.exclude$total <- model.22.exclude$p_avg + model.22.exclude$log.vol_tot + model.22.exclude$trades
+model.22.exclude <- data.frame(cusip_id = model.22.exclude[model.22.exclude$total == 3, 1])
+model.22.dataset <- data[!data$cusip_id %in% model.22.exclude$cusip_id,]
+
+
+
+
 ##d~ p_avg + log(vol_tot) + sqrt(trades)##
-model.23 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(trades)| cusip_id, data = data)
-model.23.data <- data.frame(coef = coefficients(model.23),
+model.23 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(trades)| cusip_id, data = model.23.dataset)
+model.23.data <- data.frame(row = 1:161,
+                            coef = coefficients(model.23),
                             conf = confint(model.23),
                             p_value = summary(model.23)$coef[,4,2:4],
                             r_squared = summary(model.23)$r.squared,
@@ -400,9 +451,27 @@ model.23.significant <- data.frame(significant.p_avg = sum(model.23.data$p_value
                                    non_significant.sqrt.trades = sum(model.23.data$p_value.sqrt.trades >= is_significant))
 
 
+model.23.exclude <- data.frame(cusip_id = row.names(model.23.data),
+                               p_avg = 0,
+                               log.vol_tot = 0,
+                               sqrt.trades = 0,
+                               total = 0)
+
+model.23.rows.1 <- model.23.data[model.23.data$cusip %in% row.names(model.23.data[model.23.data$p_value.p_avg > is_significant, ]), ]
+model.23.rows.2 <- model.23.data[model.23.data$cusip %in% row.names(model.23.data[model.23.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.23.rows.3 <- model.23.data[model.23.data$cusip %in% row.names(model.23.data[model.23.data$p_value.sqrt.trades. > is_significant, ]), ]
+model.23.exclude[model.23.rows.1$row, 2] <- 1
+model.23.exclude[model.23.rows.2$row, 3] <- 1
+model.23.exclude[model.23.rows.3$row, 4] <- 1
+model.23.exclude$total <- model.23.exclude$p_avg + model.23.exclude$log.vol_tot + model.23.exclude$sqrt.trades
+model.23.exclude <- data.frame(cusip_id = model.23.exclude[model.23.exclude$total == 3, 1])
+model.23.dataset <- data[!data$cusip_id %in% model.23.exclude$cusip_id,]
+
+
 ##d~p_avg+log(vol_tot)+spread##
-model.24 <- lmList(d ~ p_avg + log(vol_tot) + spread1 | cusip_id, data = data)
-model.24.data <- data.frame(coef = coefficients(model.24),
+model.24 <- lmList(d ~ p_avg + log(vol_tot) + spread1 | cusip_id, data = model.24.dataset)
+model.24.data <- data.frame(row = 1:157,
+                            coef = coefficients(model.24),
                             conf = confint(model.24),
                             p_value = summary(model.24)$coef[,4,2:4],
                             r_squared = summary(model.24)$r.squared,
@@ -417,10 +486,27 @@ model.24.significant <- data.frame(significant.p_avg = sum(model.24.data$p_value
                                    non_significant.spread = sum(model.24.data$p_value.spread1 >= is_significant))
 
 
+model.24.exclude <- data.frame(cusip_id = row.names(model.24.data),
+                               p_avg = 0,
+                               log.vol_tot = 0,
+                               spread = 0,
+                               total = 0)
+
+model.24.rows.1 <- model.24.data[model.24.data$cusip %in% row.names(model.24.data[model.24.data$p_value.p_avg > is_significant, ]), ]
+model.24.rows.2 <- model.24.data[model.24.data$cusip %in% row.names(model.24.data[model.24.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.24.rows.3 <- model.24.data[model.24.data$cusip %in% row.names(model.24.data[model.24.data$p_value.spread1 > is_significant, ]), ]
+model.24.exclude[model.24.rows.1$row, 2] <- 1
+model.24.exclude[model.24.rows.2$row, 3] <- 1
+model.24.exclude[model.24.rows.3$row, 4] <- 1
+model.24.exclude$total <- model.24.exclude$p_avg + model.24.exclude$log.vol_tot + model.24.exclude$spread
+model.24.exclude <- data.frame(cusip_id = model.24.exclude[model.24.exclude$total == 3, 1])
+model.24.dataset <- data[!data$cusip_id %in% model.24.exclude$cusip_id,]
+
 ##d~p_avg+log(vol_tot)+sqrt(spread)##
 
-model.25 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(spread1) | cusip_id, data = data)
-model.25.data <- data.frame(coef = coefficients(model.25),
+model.25 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(spread1) | cusip_id, data = model.25.dataset)
+model.25.data <- data.frame(row = 1:157, 
+                            coef = coefficients(model.25),
                             conf = confint(model.25),
                             p_value = summary(model.25)$coef[,4,2:4],
                             r_squared = summary(model.25)$r.squared,
@@ -433,6 +519,22 @@ model.25.significant <- data.frame(significant.p_avg = sum(model.25.data$p_value
                                    non_significant.log.vol_tot = sum(model.25.data$p_value.log.vol_tot. >= is_significant),
                                    significant.sqrt.spread = sum(model.25.data$p_value.sqrt.spread1. < is_significant),
                                    non_significant.sqrt.spread = sum(model.25.data$p_value.sqrt.spread1. >= is_significant))
+
+model.25.exclude <- data.frame(cusip_id = row.names(model.25.data),
+                               p_avg = 0,
+                               log.vol_tot = 0,
+                               sqrt.spread = 0,
+                               total = 0)
+
+model.25.rows.1 <- model.25.data[model.25.data$cusip %in% row.names(model.25.data[model.25.data$p_value.p_avg > is_significant, ]), ]
+model.25.rows.2 <- model.25.data[model.25.data$cusip %in% row.names(model.25.data[model.25.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.25.rows.3 <- model.25.data[model.25.data$cusip %in% row.names(model.25.data[model.25.data$p_value.sqrt.spread1. > is_significant, ]), ]
+model.25.exclude[model.25.rows.1$row, 2] <- 1
+model.25.exclude[model.25.rows.2$row, 3] <- 1
+model.25.exclude[model.25.rows.3$row, 4] <- 1
+model.25.exclude$total <- model.25.exclude$p_avg + model.25.exclude$log.vol_tot + model.25.exclude$sqrt.spread
+model.25.exclude <- data.frame(cusip_id = model.25.exclude[model.25.exclude$total == 3, 1])
+model.25.dataset <- data[!data$cusip_id %in% model.25.exclude$cusip_id,]
 
 
 ##d~p_avg+log(vol_tot)+spread^2##
@@ -571,8 +673,9 @@ model.33.significant <- data.frame(significant.spread = sum(model.33.data$p_valu
 
 
 ## d ~ spread + log(vol_tot) + trades## 
-model.34 <- lmList(d ~ spread1 + log(vol_tot) + trades | cusip_id, data = data)
-model.34.data <- data.frame(coef = coefficients(model.34),
+model.34 <- lmList(d ~ spread1 + log(vol_tot) + trades | cusip_id, data = model.34.dataset)
+model.34.data <- data.frame(row = 1:156,
+                            coef = coefficients(model.34),
                             conf = confint(model.34),
                             p_value = summary(model.34)$coef[,4,2:4],
                             r_squared = summary(model.34)$r.squared,
@@ -586,10 +689,26 @@ model.34.significant <- data.frame(significant.spread = sum(model.34.data$p_valu
                                    significant.trades = sum(model.34.data$p_value.trades < is_significant),
                                    non_significant.trades = sum(model.34.data$p_value.trades >= is_significant))
 
+model.34.exclude <- data.frame(cusip_id = row.names(model.34.data),
+                           spread = 0,
+                           log.vol_tot = 0,
+                           trades = 0,
+                           total = 0)
+
+model.34.rows.1 <- model.34.data[model.34.data$cusip %in% row.names(model.34.data[model.34.data$p_value.spread1 > is_significant, ]), ]
+model.34.rows.2 <- model.34.data[model.34.data$cusip %in% row.names(model.34.data[model.34.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.34.rows.3 <- model.34.data[model.34.data$cusip %in% row.names(model.34.data[model.34.data$p_value.trades > is_significant, ]), ]
+model.34.exclude[model.34.rows.1$row, 2] <- 1
+model.34.exclude[model.34.rows.2$row, 3] <- 1
+model.34.exclude[model.34.rows.3$row, 4] <- 1
+model.34.exclude$total <- model.34.exclude$spread + model.34.exclude$log.vol_tot + model.34.exclude$trades
+model.34.exclude <- data.frame(cusip_id = model.34.exclude[model.34.exclude$total == 3, 1])
+model.34.dataset <- data[!data$cusip_id %in% model.34.exclude$cusip_id,]
 
 ## d ~ spread + log(vol_tot) + log(trades)## 
-model.35 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) | cusip_id, data = data)
-model.35.data <- data.frame(coef = coefficients(model.35),
+model.35 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) | cusip_id, data = model.35.dataset)
+model.35.data <- data.frame(row = 1:160,
+                            coef = coefficients(model.35),
                             conf = confint(model.35),
                             p_value = summary(model.35)$coef[,4,2:4],
                             r_squared = summary(model.35)$r.squared,
@@ -603,10 +722,26 @@ model.35.significant <- data.frame(significant.spread = sum(model.35.data$p_valu
                                    significant.log.trades = sum(model.35.data$p_value.log.trades < is_significant),
                                    non_significant.log.trades = sum(model.35.data$p_value.log.trades >= is_significant))
 
+model.35.exclude <- data.frame(cusip_id = row.names(model.35.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               total = 0)
+
+model.35.rows.1 <- model.35.data[model.35.data$cusip %in% row.names(model.35.data[model.35.data$p_value.spread1 > is_significant, ]), ]
+model.35.rows.2 <- model.35.data[model.35.data$cusip %in% row.names(model.35.data[model.35.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.35.rows.3 <- model.35.data[model.35.data$cusip %in% row.names(model.35.data[model.35.data$p_value.log.trades > is_significant, ]), ]
+model.35.exclude[model.35.rows.1$row, 2] <- 1
+model.35.exclude[model.35.rows.2$row, 3] <- 1
+model.35.exclude[model.35.rows.3$row, 4] <- 1
+model.35.exclude$total <- model.35.exclude$spread + model.35.exclude$log.vol_tot + model.35.exclude$log.trades
+model.35.exclude <- data.frame(cusip_id = model.35.exclude[model.35.exclude$total == 3, 1])
+model.35.dataset <- data[!data$cusip_id %in% model.35.exclude$cusip_id,]
 
 ## d ~ spread + log(vol_tot) + sqrt(trades)## 
-model.36 <- lmList(d ~ spread1 + log(vol_tot) + sqrt(trades) | cusip_id, data = data)
-model.36.data <- data.frame(coef = coefficients(model.36),
+model.36 <- lmList(d ~ spread1 + log(vol_tot) + sqrt(trades) | cusip_id, data = model.36.dataset)
+model.36.data <- data.frame(row = 1:158,
+                            coef = coefficients(model.36),
                             conf = confint(model.36),
                             p_value = summary(model.36)$coef[,4,2:4],
                             r_squared = summary(model.36)$r.squared,
@@ -621,9 +756,27 @@ model.36.significant <- data.frame(significant.spread = sum(model.36.data$p_valu
                                    non_significant.sqrt.trades = sum(model.36.data$p_value.sqrt.trades >= is_significant))
 
 
+
+model.36.exclude <- data.frame(cusip_id = row.names(model.36.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               sqrt.trades = 0,
+                               total = 0)
+
+model.36.rows.1 <- model.36.data[model.36.data$cusip %in% row.names(model.36.data[model.36.data$p_value.spread1 > is_significant, ]), ]
+model.36.rows.2 <- model.36.data[model.36.data$cusip %in% row.names(model.36.data[model.36.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.36.rows.3 <- model.36.data[model.36.data$cusip %in% row.names(model.36.data[model.36.data$p_value.sqrt.trades. > is_significant, ]), ]
+model.36.exclude[model.36.rows.1$row, 2] <- 1
+model.36.exclude[model.36.rows.2$row, 3] <- 1
+model.36.exclude[model.36.rows.3$row, 4] <- 1
+model.36.exclude$total <- model.36.exclude$spread + model.36.exclude$log.vol_tot + model.36.exclude$sqrt.trades
+model.36.exclude <- data.frame(cusip_id = model.36.exclude[model.36.exclude$total == 3, 1])
+model.36.dataset <- data[!data$cusip_id %in% model.36.exclude$cusip_id,]
+
 ## d ~ spread + sqrt(vol_tot) + log(trades)## 
-model.37 <- lmList(d ~ spread1 + sqrt(vol_tot) + log(trades) | cusip_id, data = data)
-model.37.data <- data.frame(coef = coefficients(model.37),
+model.37 <- lmList(d ~ spread1 + sqrt(vol_tot) + log(trades) | cusip_id, data = model.37.dataset)
+model.37.data <- data.frame(row = 1:157,
+                            coef = coefficients(model.37),
                             conf = confint(model.37),
                             p_value = summary(model.37)$coef[,4,2:4],
                             r_squared = summary(model.37)$r.squared,
@@ -638,49 +791,256 @@ model.37.significant <- data.frame(significant.spread = sum(model.37.data$p_valu
                                    non_significant.log.trades = sum(model.37.data$p_value.log.trades >= is_significant))
 
 
+model.37.exclude <- data.frame(cusip_id = row.names(model.37.data),
+                               spread = 0,
+                               sqrt.vol_tot = 0,
+                               log.trades = 0,
+                               total = 0)
+
+model.37.rows.1 <- model.37.data[model.37.data$cusip %in% row.names(model.37.data[model.37.data$p_value.spread1 > is_significant, ]), ]
+model.37.rows.2 <- model.37.data[model.37.data$cusip %in% row.names(model.37.data[model.37.data$p_value.sqrt.vol_tot. > is_significant, ]), ]
+model.37.rows.3 <- model.37.data[model.37.data$cusip %in% row.names(model.37.data[model.37.data$p_value.log.trades. > is_significant, ]), ]
+model.37.exclude[model.37.rows.1$row, 2] <- 1
+model.37.exclude[model.37.rows.2$row, 3] <- 1
+model.37.exclude[model.37.rows.3$row, 4] <- 1
+model.37.exclude$total <- model.37.exclude$spread + model.37.exclude$sqrt.vol_tot + model.37.exclude$log.trades
+model.37.exclude <- data.frame(cusip_id = model.37.exclude[model.37.exclude$total == 3, 1])
+model.37.dataset <- data[!data$cusip_id %in% model.37.exclude$cusip_id,]
 
 
 
 
+## d ~ spread + log(vol_tot) + log(trades) + russell3000_std## 
+model.38 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + russell3000_std | cusip_id, data = model.38.dataset)
+model.38.data <- data.frame(row = 1:156,
+                            coef = coefficients(model.38),
+                            conf = confint(model.38),
+                            p_value = summary(model.38)$coef[,4,2:5],
+                            r_squared = summary(model.38)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.38)$adj.r.squared), nrow=length(summary(model.38)$adj.r.squared), byrow=TRUE))
+model.38.data$cusip <- row.names(model.38.data)
+
+model.38.significant <- data.frame(significant.spread = sum(model.38.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.38.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.38.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.38.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.38.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.38.data$p_value.log.trades >= is_significant),
+                                   significant.russell3000_std = sum(model.38.data$p_value.russell3000_std < is_significant),
+                                   non_significant.russell3000_std = sum(model.38.data$p_value.russell3000_std >= is_significant))
+
+model.38.exclude <- data.frame(cusip_id = row.names(model.38.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               russell3000_std = 0,
+                               total = 0)
+
+model.38.rows.1 <- model.38.data[model.38.data$cusip %in% row.names(model.38.data[model.38.data$p_value.spread1 > is_significant, ]), ]
+model.38.rows.2 <- model.38.data[model.38.data$cusip %in% row.names(model.38.data[model.38.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.38.rows.3 <- model.38.data[model.38.data$cusip %in% row.names(model.38.data[model.38.data$p_value.log.trades > is_significant, ]), ]
+model.38.rows.4 <- model.38.data[model.38.data$cusip %in% row.names(model.38.data[model.38.data$p_value.russell3000_std > is_significant, ]), ]
+model.38.exclude[model.38.rows.1$row, 2] <- 1
+model.38.exclude[model.38.rows.2$row, 3] <- 1
+model.38.exclude[model.38.rows.3$row, 4] <- 1
+model.38.exclude[model.38.rows.4$row, 5] <- 1
+model.38.exclude$total <- model.38.exclude$spread + model.38.exclude$log.vol_tot + model.38.exclude$log.trades + model.38.exclude$russell3000_std
+model.38.exclude <- data.frame(cusip_id = model.38.exclude[model.38.exclude$total == 4, 1])
+model.38.dataset <- data[!data$cusip_id %in% model.38.exclude$cusip_id,]
+
+
+## d ~ spread + log(vol_tot) + log(trades) + log(russell3000_std)## 
+model.39 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(russell3000_std) | cusip_id, data = model.39.dataset)
+model.39.data <- data.frame(row = 1:156,
+                            coef = coefficients(model.39),
+                            conf = confint(model.39),
+                            p_value = summary(model.39)$coef[,4,2:5],
+                            r_squared = summary(model.39)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.39)$adj.r.squared), nrow=length(summary(model.39)$adj.r.squared), byrow=TRUE))
+model.39.data$cusip <- row.names(model.39.data)
+
+model.39.significant <- data.frame(significant.spread = sum(model.39.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.39.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.39.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.39.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.39.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.39.data$p_value.log.trades >= is_significant),
+                                   significant.log.russell3000_std = sum(model.39.data$p_value.log.russell3000_std. < is_significant),
+                                   non_significant.log.russell3000_std = sum(model.39.data$p_value.log.russell3000_std. >= is_significant))
+
+model.39.exclude <- data.frame(cusip_id = row.names(model.39.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               log.russell3000_std = 0,
+                               total = 0)
+
+model.39.rows.1 <- model.39.data[model.39.data$cusip %in% row.names(model.39.data[model.39.data$p_value.spread1 > is_significant, ]), ]
+model.39.rows.2 <- model.39.data[model.39.data$cusip %in% row.names(model.39.data[model.39.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.39.rows.3 <- model.39.data[model.39.data$cusip %in% row.names(model.39.data[model.39.data$p_value.log.trades > is_significant, ]), ]
+model.39.rows.4 <- model.39.data[model.39.data$cusip %in% row.names(model.39.data[model.39.data$p_value.log.russell3000_std.> is_significant, ]), ]
+model.39.exclude[model.39.rows.1$row, 2] <- 1
+model.39.exclude[model.39.rows.2$row, 3] <- 1
+model.39.exclude[model.39.rows.3$row, 4] <- 1
+model.39.exclude[model.39.rows.4$row, 5] <- 1
+model.39.exclude$total <- model.39.exclude$spread + model.39.exclude$log.vol_tot + model.39.exclude$log.trades + model.39.exclude$log.russell3000_std
+model.39.exclude <- data.frame(cusip_id = model.39.exclude[model.39.exclude$total == 4, 1])
+model.39.dataset <- data[!data$cusip_id %in% model.39.exclude$cusip_id,]
+
+
+## d ~ spread + log(vol_tot) + log(trades) + sqrt(russell3000_std)## 
+model.40 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(russell3000_std) | cusip_id, data = model.40.dataset)
+model.40.data <- data.frame(row = 1:156,
+                            coef = coefficients(model.40),
+                            conf = confint(model.40),
+                            p_value = summary(model.40)$coef[,4,2:5],
+                            r_squared = summary(model.40)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.40)$adj.r.squared), nrow=length(summary(model.40)$adj.r.squared), byrow=TRUE))
+model.40.data$cusip <- row.names(model.40.data)
+
+model.40.significant <- data.frame(significant.spread = sum(model.40.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.40.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.40.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.40.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.40.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.40.data$p_value.log.trades >= is_significant),
+                                   significant.sqrt.russell3000_std = sum(model.40.data$p_value.sqrt.russell3000_std. < is_significant),
+                                   non_significant.sqrt.russell3000_std = sum(model.40.data$p_value.sqrt.russell3000_std. >= is_significant))
+
+model.40.exclude <- data.frame(cusip_id = row.names(model.40.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               sqrt.russell3000_std = 0,
+                               total = 0)
+
+model.40.rows.1 <- model.40.data[model.40.data$cusip %in% row.names(model.40.data[model.40.data$p_value.spread1 > is_significant, ]), ]
+model.40.rows.2 <- model.40.data[model.40.data$cusip %in% row.names(model.40.data[model.40.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.40.rows.3 <- model.40.data[model.40.data$cusip %in% row.names(model.40.data[model.40.data$p_value.log.trades > is_significant, ]), ]
+model.40.rows.4 <- model.40.data[model.40.data$cusip %in% row.names(model.40.data[model.40.data$p_value.sqrt.russell3000_std.> is_significant, ]), ]
+model.40.exclude[model.40.rows.1$row, 2] <- 1
+model.40.exclude[model.40.rows.2$row, 3] <- 1
+model.40.exclude[model.40.rows.3$row, 4] <- 1
+model.40.exclude[model.40.rows.4$row, 5] <- 1
+model.40.exclude$total <- model.40.exclude$spread + model.40.exclude$log.vol_tot + model.40.exclude$log.trades + model.40.exclude$sqrt.russell3000_std
+model.40.exclude <- data.frame(cusip_id = model.40.exclude[model.40.exclude$total == 4, 1])
+model.40.dataset <- data[!data$cusip_id %in% model.40.exclude$cusip_id,]
 
 
 
+## d ~ spread + log(vol_tot) + log(trades) + spbond_std## 
+model.41 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + spbond_std | cusip_id, data = model.41.dataset)
+model.41.data <- data.frame(row = 1:157,
+                            coef = coefficients(model.41),
+                            conf = confint(model.41),
+                            p_value = summary(model.41)$coef[,4,2:5],
+                            r_squared = summary(model.41)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.41)$adj.r.squared), nrow=length(summary(model.41)$adj.r.squared), byrow=TRUE))
+model.41.data$cusip <- row.names(model.41.data)
+
+model.41.significant <- data.frame(significant.spread = sum(model.41.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.41.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.41.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.41.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.41.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.41.data$p_value.log.trades >= is_significant),
+                                   significant.spbond_std = sum(model.41.data$p_value.spbond_std < is_significant),
+                                   non_significant.spbond_std = sum(model.41.data$p_value.spbond_std >= is_significant))
+
+model.41.exclude <- data.frame(cusip_id = row.names(model.41.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               spbond_std = 0,
+                               total = 0)
+
+model.41.rows.1 <- model.41.data[model.41.data$cusip %in% row.names(model.41.data[model.41.data$p_value.spread1 > is_significant, ]), ]
+model.41.rows.2 <- model.41.data[model.41.data$cusip %in% row.names(model.41.data[model.41.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.41.rows.3 <- model.41.data[model.41.data$cusip %in% row.names(model.41.data[model.41.data$p_value.log.trades > is_significant, ]), ]
+model.41.rows.4 <- model.41.data[model.41.data$cusip %in% row.names(model.41.data[model.41.data$p_value.spbond_std> is_significant, ]), ]
+model.41.exclude[model.41.rows.1$row, 2] <- 1
+model.41.exclude[model.41.rows.2$row, 3] <- 1
+model.41.exclude[model.41.rows.3$row, 4] <- 1
+model.41.exclude[model.41.rows.4$row, 5] <- 1
+model.41.exclude$total <- model.41.exclude$spread + model.41.exclude$log.vol_tot + model.41.exclude$log.trades + model.41.exclude$spbond_std
+model.41.exclude <- data.frame(cusip_id = model.41.exclude[model.41.exclude$total == 4, 1])
+model.41.dataset <- data[!data$cusip_id %in% model.41.exclude$cusip_id,]
 
 
+## d ~ spread + log(vol_tot) + log(trades) + log(spbond_std)## 
+model.42 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(spbond_std) | cusip_id, data = model.42.dataset)
+model.42.data <- data.frame(row = 1:157,
+                            coef = coefficients(model.42),
+                            conf = confint(model.42),
+                            p_value = summary(model.42)$coef[,4,2:5],
+                            r_squared = summary(model.42)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.42)$adj.r.squared), nrow=length(summary(model.42)$adj.r.squared), byrow=TRUE))
+model.42.data$cusip <- row.names(model.42.data)
+
+model.42.significant <- data.frame(significant.spread = sum(model.42.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.42.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.42.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.42.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.42.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.42.data$p_value.log.trades >= is_significant),
+                                   significant.log.spbond_std = sum(model.42.data$p_value.log.spbond_std. < is_significant),
+                                   non_significant.log.spbond_std = sum(model.42.data$p_value.log.spbond_std. >= is_significant))
+
+model.42.exclude <- data.frame(cusip_id = row.names(model.42.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               log.spbond_std = 0,
+                               total = 0)
+
+model.42.rows.1 <- model.42.data[model.42.data$cusip %in% row.names(model.42.data[model.42.data$p_value.spread1 > is_significant, ]), ]
+model.42.rows.2 <- model.42.data[model.42.data$cusip %in% row.names(model.42.data[model.42.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.42.rows.3 <- model.42.data[model.42.data$cusip %in% row.names(model.42.data[model.42.data$p_value.log.trades > is_significant, ]), ]
+model.42.rows.4 <- model.42.data[model.42.data$cusip %in% row.names(model.42.data[model.42.data$p_value.log.spbond_std. > is_significant, ]), ]
+model.42.exclude[model.42.rows.1$row, 2] <- 1
+model.42.exclude[model.42.rows.2$row, 3] <- 1
+model.42.exclude[model.42.rows.3$row, 4] <- 1
+model.42.exclude[model.42.rows.4$row, 5] <- 1
+model.42.exclude$total <- model.42.exclude$spread + model.42.exclude$log.vol_tot + model.42.exclude$log.trades + model.42.exclude$log.spbond_std
+model.42.exclude <- data.frame(cusip_id = model.42.exclude[model.42.exclude$total == 4, 1])
+model.42.dataset <- data[!data$cusip_id %in% model.42.exclude$cusip_id,]
 
 
+## d ~ spread + log(vol_tot) + log(trades) + sqrt(spbond_std)## 
+model.43 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(spbond_std) | cusip_id, data = model.43.dataset)
+model.43.data <- data.frame(row = 1:157,
+                            coef = coefficients(model.43),
+                            conf = confint(model.43),
+                            p_value = summary(model.43)$coef[,4,2:5],
+                            r_squared = summary(model.43)$r.squared,
+                            r_squared_adj = matrix(unlist(summary(model.43)$adj.r.squared), nrow=length(summary(model.43)$adj.r.squared), byrow=TRUE))
+model.43.data$cusip <- row.names(model.43.data)
 
+model.43.significant <- data.frame(significant.spread = sum(model.43.data$p_value.spread1 < is_significant),
+                                   non_significant.spread = sum(model.43.data$p_value.spread1 >= is_significant),
+                                   significant.log.vol_tot = sum(model.43.data$p_value.log.vol_tot. < is_significant),
+                                   non_significant.log.sqrt.vol_tot = sum(model.43.data$p_value.log.vol_tot. >= is_significant),
+                                   significant.log.trades = sum(model.43.data$p_value.log.trades < is_significant),
+                                   non_significant.log.trades = sum(model.43.data$p_value.log.trades >= is_significant),
+                                   significant.sqrt.spbond_std = sum(model.43.data$p_value.sqrt.spbond_std. < is_significant),
+                                   non_significant.sqrt.spbond_std = sum(model.43.data$p_value.sqrt.spbond_std. >= is_significant))
 
+model.43.exclude <- data.frame(cusip_id = row.names(model.43.data),
+                               spread = 0,
+                               log.vol_tot = 0,
+                               log.trades = 0,
+                               sqrt.spbond_std = 0,
+                               total = 0)
 
+model.43.rows.1 <- model.43.data[model.43.data$cusip %in% row.names(model.43.data[model.43.data$p_value.spread1 > is_significant, ]), ]
+model.43.rows.2 <- model.43.data[model.43.data$cusip %in% row.names(model.43.data[model.43.data$p_value.log.vol_tot. > is_significant, ]), ]
+model.43.rows.3 <- model.43.data[model.43.data$cusip %in% row.names(model.43.data[model.43.data$p_value.log.trades > is_significant, ]), ]
+model.43.rows.4 <- model.43.data[model.43.data$cusip %in% row.names(model.43.data[model.43.data$p_value.sqrt.spbond_std. > is_significant, ]), ]
+model.43.exclude[model.43.rows.1$row, 2] <- 1
+model.43.exclude[model.43.rows.2$row, 3] <- 1
+model.43.exclude[model.43.rows.3$row, 4] <- 1
+model.43.exclude[model.43.rows.4$row, 5] <- 1
+model.43.exclude$total <- model.43.exclude$spread + model.43.exclude$log.vol_tot + model.43.exclude$log.trades + model.43.exclude$sqrt.spbond_std
+model.43.exclude <- data.frame(cusip_id = model.43.exclude[model.43.exclude$total == 4, 1])
+model.43.dataset <- data[!data$cusip_id %in% model.43.exclude$cusip_id,]
 
-
-## d ~ spread + log(vol_tot) + log(trades):p_avg## 
-model.test <- lmList(d ~ spread1 + log(vol_tot) + log(trades)| cusip_id, data = data)
-model.test.data <- data.frame(row = 1:167,
-                            coef = coefficients(model.test),
-                            conf = confint(model.test),
-                            p_value = summary(model.test)$coef[,4,2:4],
-                            r_squared = summary(model.test)$r.squared,
-                            r_squared_adj = matrix(unlist(summary(model.test)$adj.r.squared), nrow=length(summary(model.test)$adj.r.squared), byrow=TRUE))
-model.test.data$cusip <- row.names(model.test.data)
-
-model.test.significant <- data.frame(significant.spread = sum(model.test.data$p_value.spread1 < is_significant),
-                                   non_significant.spread = sum(model.test.data$p_value.spread1 >= is_significant),
-                                   significant.log.vol_tot = sum(model.test.data$p_value.log.vol_tot. < is_significant),
-                                   non_significant.log.vol_tot = sum(model.test.data$p_value.log.vol_tot. >= is_significant),
-                                   significant.log.trades = sum(model.test.data$p_value.log.trades. < is_significant),
-                                   non_significant.log.trades = sum(model.test.data$p_value.log.trades. >= is_significant))
-
-model.test.p <- data.frame(cusip_id = row.names(model.test.data),
-                           spread = 0,
-                           log.vol_tot = 0,
-                           log.trades = 0,
-                           total = 0)
-
-rows.spread <- model.test.data[model.test.data$cusip %in% row.names(model.test.data[model.test.data$p_value.spread1 > is_significant, ]), ]
-rows.log.vol_tot <- model.test.data[model.test.data$cusip %in% row.names(model.test.data[model.test.data$p_value.log.vol_tot. > is_significant, ]), ]
-rows.log.trades <- model.test.data[model.test.data$cusip %in% row.names(model.test.data[model.test.data$p_value.log.trades. > is_significant, ]), ]
-model.test.p[rows.spread$row, 2] <- 1
-model.test.p[rows.log.vol_tot$row, 3] <- 1
-model.test.p[rows.log.trades$row, 4] <- 1
-model.test.p$total <- model.test.p$spread + model.test.p$log.vol_tot + model.test.p$log.trades
