@@ -6,6 +6,7 @@ names(trades)[3] <- paste("trades")
 data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
+data <- data[!is.na(data$illiq_mid),]
 
 subdata1<-data[1:502,]
 subdata1<-subdata1[subdata1$illiq_mid<10,]

@@ -10,6 +10,12 @@ data$spread1 <- unlist(kalman)
 subdata1<-data[1:502,]
 subdata1<-subdata1[subdata1$d<0.8,]
 
+subdata2<-data[61365:61859,]
+subdata2<-subdata2[subdata2$d<2.0,]
+
+subdata3<-data[61860:62357,]
+subdata3<-subdata3[subdata3$d<1.5,]
+
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
@@ -52,7 +58,7 @@ qqline(res.3)
 ##d~spread+vol_tot
 model.4 <- lm(d ~ spread1+vol_tot, data=data)
 
-model.4_sub <- lm(d ~ spread1+vol_tot, data=subdata1)
+model.4_sub <- lm(d ~ spread1+vol_tot, data=subdata3)
 
 model.4.data <- data.frame(coef = coefficients(model.4),
                            conf = confint(model.4),
@@ -80,7 +86,7 @@ qqline(res.5)
 ##d~spread+sqrt(vol_tot)
 model.6 <- lm(d ~ spread1+sqrt(vol_tot), data=data)
 
-model.6_sub <- lm(d ~ spread1+sqrt(vol_tot), data=subdata1)
+model.6_sub <- lm(d ~ spread1+sqrt(vol_tot), data=subdata3)
 
 model.6.data <- data.frame(coef = coefficients(model.6),
                            conf = confint(model.6),
@@ -132,7 +138,7 @@ qqline(res.9)
 ##d~spread+sqrt(vol_tot)+log(trades)
 model.10 <- lm(d ~ spread1+sqrt(vol_tot)+log(trades), data=data)
 
-model.10_sub <- lm(d ~ spread1+sqrt(vol_tot)+log(trades), data=subdata1)
+model.10_sub <- lm(d ~ spread1+sqrt(vol_tot)+log(trades), data=subdata3)
 
 model.10.data <- data.frame(coef = coefficients(model.10),
                             conf = confint(model.10),
