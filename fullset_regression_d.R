@@ -7,13 +7,16 @@ data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
 
+subdata1<-data[1:502,]
+subdata1<-subdata1[subdata1$d<0.8,]
+
 names(data)[1] <- paste("cusip_id")
 data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
 
 
 ##d~vol_tot
-model.1 <- lm(d ~ vol_tot, data=data)
+model.1 <- lm(d ~ vol_tot, data=subdata1)
 
 model.1.data <- data.frame(coef = coefficients(model.1),
                            conf = confint(model.1),
@@ -49,11 +52,13 @@ qqline(res.3)
 ##d~spread+vol_tot
 model.4 <- lm(d ~ spread1+vol_tot, data=data)
 
+model.4_sub <- lm(d ~ spread1+vol_tot, data=subdata1)
+
 model.4.data <- data.frame(coef = coefficients(model.4),
                            conf = confint(model.4),
                            p_value = summary(model.4)$coef[2,4],
                            r_squared = summary(model.4)$r.squared)
-res.4<-residuals(model.4)
+res.4<-residuals(model.4_sub)
 hist(res.4)
 qqnorm(res.4)
 qqline(res.4)
@@ -61,11 +66,13 @@ qqline(res.4)
 ##d~spread+log(vol_tot)
 model.5 <- lm(d ~ spread1+log(vol_tot), data=data)
 
+model.5_sub <- lm(d ~ spread1+log(vol_tot), data=subdata1)
+
 model.5.data <- data.frame(coef = coefficients(model.5),
                            conf = confint(model.5),
                            p_value = summary(model.5)$coef[2,4],
                            r_squared = summary(model.5)$r.squared)
-res.5<-residuals(model.5)
+res.5<-residuals(model.5_sub)
 hist(res.5)
 qqnorm(res.5)
 qqline(res.5)
@@ -73,11 +80,13 @@ qqline(res.5)
 ##d~spread+sqrt(vol_tot)
 model.6 <- lm(d ~ spread1+sqrt(vol_tot), data=data)
 
+model.6_sub <- lm(d ~ spread1+sqrt(vol_tot), data=subdata1)
+
 model.6.data <- data.frame(coef = coefficients(model.6),
                            conf = confint(model.6),
                            p_value = summary(model.6)$coef[2,4],
                            r_squared = summary(model.6)$r.squared)
-res.6<-residuals(model.6)
+res.6<-residuals(model.6_sub)
 hist(res.6)
 qqnorm(res.6)
 qqline(res.6)
@@ -119,4 +128,61 @@ res.9<-residuals(model.9)
 hist(res.9)
 qqnorm(res.9)
 qqline(res.9)
+
+##d~spread+sqrt(vol_tot)+log(trades)
+model.10 <- lm(d ~ spread1+sqrt(vol_tot)+log(trades), data=data)
+
+model.10_sub <- lm(d ~ spread1+sqrt(vol_tot)+log(trades), data=subdata1)
+
+model.10.data <- data.frame(coef = coefficients(model.10),
+                            conf = confint(model.10),
+                            p_value = summary(model.10)$coef[2,4],
+                            r_squared = summary(model.10)$r.squared)
+res.10<-residuals(model.10_sub)
+hist(res.10)
+qqnorm(res.10)
+qqline(res.10)
+
+##d~spread+log(vol_tot)+trades
+model.11 <- lm(d ~ spread1+log(vol_tot)+trades, data=data)
+
+model.11_sub <- lm(d ~ spread1+log(vol_tot)+trades, data=subdata1)
+
+model.11.data <- data.frame(coef = coefficients(model.11),
+                            conf = confint(model.11),
+                            p_value = summary(model.11)$coef[2,4],
+                            r_squared = summary(model.11)$r.squared)
+res.11<-residuals(model.11_sub)
+hist(res.11)
+qqnorm(res.11)
+qqline(res.11)
+
+##d~spread+log(vol_tot)+log(trades)
+model.12 <- lm(d ~ spread1+log(vol_tot)+log(trades), data=data)
+
+model.12_sub <- lm(d ~ spread1+log(vol_tot)+log(trades), data=subdata1)
+
+model.12.data <- data.frame(coef = coefficients(model.12),
+                            conf = confint(model.12),
+                            p_value = summary(model.12)$coef[2,4],
+                            r_squared = summary(model.12)$r.squared)
+res.12<-residuals(model.12_sub)
+hist(res.12)
+qqnorm(res.12)
+qqline(res.12)
+
+##d~spread+log(vol_tot)+sqrt(trades)
+model.13 <- lm(d ~ spread1+sqrt(vol_tot), data=data)
+
+model.13_sub <- lm(d ~ spread1+sqrt(vol_tot), data=subdata1)
+
+model.13.data <- data.frame(coef = coefficients(model.13),
+                            conf = confint(model.13),
+                            p_value = summary(model.13)$coef[2,4],
+                            r_squared = summary(model.13)$r.squared)
+res.13<-residuals(model.13_sub)
+hist(res.13)
+qqnorm(res.13)
+qqline(res.13)
+
 
