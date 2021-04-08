@@ -7,7 +7,10 @@ data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
 
+
+
 data <- data[!is.na(data$HHI),]
+data <- data[data$HHI<10.488,]
 dataHY <- data[data$type=="HY",]
 dataIG <- data[data$type=="IG",]
 
@@ -235,3 +238,32 @@ res.16<-residuals(model.16)
 hist(res.16)
 qqnorm(res.16)
 qqline(res.16)
+
+##HHI~rating+spread+log(vol_tot)+log(trades)
+model.17 <- lm(HHI ~ credit+spread+log(vol_tot)+log(trades), data=data)
+
+
+model.17.data <- data.frame(coef = coefficients(model.17),
+                            conf = confint(model.17),
+                            p_value = summary(model.17)$coef[2,4],
+                            r_squared = summary(model.17)$r.squared)
+res.17<-residuals(model.17)
+
+hist(res.17)
+qqnorm(res.17)
+qqline(res.17)
+
+
+##HHI~type+spread+log(vol_tot)+log(trades)
+model.18 <- lm(HHI ~ type+spread+log(vol_tot)+trades, data=data)
+
+
+model.18.data <- data.frame(coef = coefficients(model.18),
+                            conf = confint(model.18),
+                            p_value = summary(model.18)$coef[2,4],
+                            r_squared = summary(model.18)$r.squared)
+res.18<-residuals(model.18)
+
+hist(res.18)
+qqnorm(res.18)
+qqline(res.18)

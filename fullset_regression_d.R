@@ -6,8 +6,17 @@ names(trades)[3] <- paste("trades")
 data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
+turnover <- data$p_avg*data$vol_tot/data$outstanding
+data$turnover <- as.numeric(turnover)
+data=data[!is.na(data$turnover),]
+data=data[!is.nan(data$turnover),]
+data=data[!is.infinite(data$turnover),]
 
 data <- data[data$d<0.896,]
+
+goodbonds<- data[data$cusip_id!="02209SBD4" & data$cusip_id!="06051GFD6" & data$cusip_id!="126650CV0" & data$cusip_id!="126650CX6" & data$cusip_id!="172967HC8" & data$cusip_id!="172967KE0" & data$cusip_id!="38145XAA1" & data$cusip_id!="46625HHS2" & data$cusip_id!="71654QCK6",]
+
+
 
 subdata1<-data[1:502,]
 subdata1<-subdata1[subdata1$d<0.8,]
@@ -211,7 +220,7 @@ qqnorm(res.16)
 qqline(res.16)
 
 ##d~rating+spread+log(vol_tot)+log(trades)
-model.17 <- lm(d ~ credit+spread+log(vol_tot)+log(trades), data=data)
+model.17 <- lm(d ~ credit+spread+log(vol_tot)+log(trades), data=goodbonds)
 
 
 model.17.data <- data.frame(coef = coefficients(model.17),
@@ -238,3 +247,6 @@ res.18<-residuals(model.18)
 hist(res.18)
 qqnorm(res.18)
 qqline(res.18)
+
+##d~turnover
+model.19<-lm(d~turnover, data=data)

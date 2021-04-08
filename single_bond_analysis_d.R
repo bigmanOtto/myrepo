@@ -7,6 +7,8 @@ data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
 
+
+
 subdata_IG1<-data[1:502,] ##00206RBD3
 subdata_IG1<-subdata_IG1[subdata_IG1$d<0.8,]
 
