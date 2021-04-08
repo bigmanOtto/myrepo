@@ -203,6 +203,8 @@ model.15_HY <- lm(HHI ~ log(vol_tot)+spread, data=dataHY)
 
 model.15_IG <- lm(HHI ~ log(vol_tot)+spread, data=dataIG)
 
+model.15 <- lm(HHI ~ type + log(vol_tot)+spread, data=data)
+
 model.15.data <- data.frame(coef = coefficients(model.15),
                            conf = confint(model.15),
                            p_value = summary(model.15)$coef[2,4],
@@ -220,4 +222,16 @@ qqnorm(res.15_IG)
 qqline(res.15_IG)
 
 
+##HHI~spread+log(vol_tot)+log(trades)+russel
+model.16 <- lm(HHI ~ spread1+log(vol_tot)+log(trades)+russell_logreturn, data=data)
 
+
+
+model.16.data <- data.frame(coef = coefficients(model.16),
+                            conf = confint(model.16),
+                            p_value = summary(model.16)$coef[2,4],
+                            r_squared = summary(model.16)$r.squared)
+res.16<-residuals(model.16)
+hist(res.16)
+qqnorm(res.16)
+qqline(res.16)

@@ -7,6 +7,8 @@ data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
 
+data <- data[data$d<0.896,]
+
 subdata1<-data[1:502,]
 subdata1<-subdata1[subdata1$d<0.8,]
 
@@ -126,11 +128,13 @@ qqline(res.8)
 ##d~rating+log(vol_tot)+spread
 model.9 <- lm(d ~ credit+log(vol_tot)+spread, data=data)
 
+
 model.9.data <- data.frame(coef = coefficients(model.9),
                            conf = confint(model.9),
                            p_value = summary(model.9)$coef[2,4],
                            r_squared = summary(model.9)$r.squared)
 res.9<-residuals(model.9)
+
 hist(res.9)
 qqnorm(res.9)
 qqline(res.9)
@@ -192,3 +196,45 @@ qqnorm(res.13)
 qqline(res.13)
 
 
+##d~spread+log(vol_tot)+log(trades)+russel
+model.16 <- lm(d ~ spread1+log(vol_tot)+log(trades)+russell_logreturn, data=data)
+
+
+
+model.16.data <- data.frame(coef = coefficients(model.16),
+                            conf = confint(model.16),
+                            p_value = summary(model.16)$coef[2,4],
+                            r_squared = summary(model.16)$r.squared)
+res.16<-residuals(model.16)
+hist(res.16)
+qqnorm(res.16)
+qqline(res.16)
+
+##d~rating+spread+log(vol_tot)+log(trades)
+model.17 <- lm(d ~ credit+spread+log(vol_tot)+log(trades), data=data)
+
+
+model.17.data <- data.frame(coef = coefficients(model.17),
+                           conf = confint(model.17),
+                           p_value = summary(model.17)$coef[2,4],
+                           r_squared = summary(model.17)$r.squared)
+res.17<-residuals(model.17)
+
+hist(res.17)
+qqnorm(res.17)
+qqline(res.17)
+
+
+##d~type+spread+log(vol_tot)+log(trades)
+model.18 <- lm(d ~ type+spread+log(vol_tot)+trades, data=data)
+
+
+model.18.data <- data.frame(coef = coefficients(model.18),
+                            conf = confint(model.18),
+                            p_value = summary(model.18)$coef[2,4],
+                            r_squared = summary(model.18)$r.squared)
+res.18<-residuals(model.18)
+
+hist(res.18)
+qqnorm(res.18)
+qqline(res.18)
