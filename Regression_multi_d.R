@@ -1,5 +1,22 @@
 library(lme4)
 
+pvals.globalf = data.frame(p_value.21 = pf(summary(model.21)$fstatistic[,1], summary(model.21)$fstatistic[,2],summary(model.21)$fstatistic[,3], lower = F),
+                           p_value.22 = pf(summary(model.22)$fstatistic[,1], summary(model.22)$fstatistic[,2],summary(model.22)$fstatistic[,3], lower = F),
+                           p_value.23 = pf(summary(model.23)$fstatistic[,1], summary(model.23)$fstatistic[,2],summary(model.23)$fstatistic[,3], lower = F),
+                           p_value.24 = pf(summary(model.24)$fstatistic[,1], summary(model.24)$fstatistic[,2],summary(model.24)$fstatistic[,3], lower = F),
+                           p_value.25 = pf(summary(model.25)$fstatistic[,1], summary(model.25)$fstatistic[,2],summary(model.25)$fstatistic[,3], lower = F),
+                           p_value.34 = pf(summary(model.34)$fstatistic[,1], summary(model.34)$fstatistic[,2],summary(model.34)$fstatistic[,3], lower = F),
+                           p_value.35 = pf(summary(model.35)$fstatistic[,1], summary(model.35)$fstatistic[,2],summary(model.35)$fstatistic[,3], lower = F),
+                           p_value.36 = pf(summary(model.36)$fstatistic[,1], summary(model.36)$fstatistic[,2],summary(model.36)$fstatistic[,3], lower = F),
+                           p_value.37 = pf(summary(model.37)$fstatistic[,1], summary(model.37)$fstatistic[,2],summary(model.37)$fstatistic[,3], lower = F),
+                           p_value.38 = pf(summary(model.38)$fstatistic[,1], summary(model.38)$fstatistic[,2],summary(model.38)$fstatistic[,3], lower = F),
+                           p_value.39 = pf(summary(model.39)$fstatistic[,1], summary(model.39)$fstatistic[,2],summary(model.39)$fstatistic[,3], lower = F),
+                           p_value.40 = pf(summary(model.40)$fstatistic[,1], summary(model.40)$fstatistic[,2],summary(model.40)$fstatistic[,3], lower = F),
+                           p_value.41 = pf(summary(model.41)$fstatistic[,1], summary(model.41)$fstatistic[,2],summary(model.41)$fstatistic[,3], lower = F),
+                           p_value.42 = pf(summary(model.42)$fstatistic[,1], summary(model.42)$fstatistic[,2],summary(model.42)$fstatistic[,3], lower = F),
+                           p_value.43 = pf(summary(model.43)$fstatistic[,1], summary(model.43)$fstatistic[,2],summary(model.43)$fstatistic[,3], lower = F))
+
+
 trace <- TRACE
 trades <- aggregate(type~cusip_id+trd_exctn_dt, data = trace, FUN = function(x){NROW(x)})
 trades <- trades[with(trades, order(cusip_id, trd_exctn_dt)), ]
@@ -364,7 +381,8 @@ ggplot(data = model.20.data, aes(x = coef.sqrt.trades., y = dnorm)) +
   geom_point()
 
 ##d~p_avg + log(vol_tot) + log(trades)##
-model.21 <- lmList(d ~ p_avg + log(vol_tot) + log(trades) | cusip_id, data = model.21.dataset)
+model.21 <- lmList(d ~ p_avg + log(vol_tot) + log(trades) | cusip_id, data = data)
+
 model.21.data <- data.frame(row = 1:163,
                             coef = coefficients(model.21),
                             conf = confint(model.21),
@@ -399,7 +417,7 @@ model.21.dataset <- data[!data$cusip_id %in% model.21.exclude$cusip_id,]
 
 
 ##d~p_avg + log(vol_tot) + trades##
-model.22 <- lmList(d ~ p_avg + log(vol_tot) + trades | cusip_id, data = model.22.dataset)
+model.22 <- lmList(d ~ p_avg + log(vol_tot) + trades | cusip_id, data = data)
 model.22.data <- data.frame(row = 1:156,
                             coef = coefficients(model.22),
                             conf = confint(model.22),
@@ -437,7 +455,7 @@ model.22.dataset <- data[!data$cusip_id %in% model.22.exclude$cusip_id,]
 
 
 ##d~ p_avg + log(vol_tot) + sqrt(trades)##
-model.23 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(trades)| cusip_id, data = model.23.dataset)
+model.23 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(trades)| cusip_id, data = data)
 model.23.data <- data.frame(row = 1:161,
                             coef = coefficients(model.23),
                             conf = confint(model.23),
@@ -472,7 +490,7 @@ model.23.dataset <- data[!data$cusip_id %in% model.23.exclude$cusip_id,]
 
 
 ##d~p_avg+log(vol_tot)+spread##
-model.24 <- lmList(d ~ p_avg + log(vol_tot) + spread1 | cusip_id, data = model.24.dataset)
+model.24 <- lmList(d ~ p_avg + log(vol_tot) + spread1 | cusip_id, data = data)
 model.24.data <- data.frame(row = 1:157,
                             coef = coefficients(model.24),
                             conf = confint(model.24),
@@ -507,7 +525,7 @@ model.24.dataset <- data[!data$cusip_id %in% model.24.exclude$cusip_id,]
 
 ##d~p_avg+log(vol_tot)+sqrt(spread)##
 
-model.25 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(spread1) | cusip_id, data = model.25.dataset)
+model.25 <- lmList(d ~ p_avg + log(vol_tot) + sqrt(spread1) | cusip_id, data = data)
 model.25.data <- data.frame(row = 1:157, 
                             coef = coefficients(model.25),
                             conf = confint(model.25),
@@ -675,8 +693,12 @@ model.33.significant <- data.frame(significant.spread = sum(model.33.data$p_valu
 
 
 
+
+  
 ## d ~ spread + log(vol_tot) + trades## 
-model.34 <- lmList(d ~ spread1 + log(vol_tot) + trades | cusip_id, data = model.34.dataset)
+model.34 <- lmList(d ~ spread1 + log(vol_tot) + trades | cusip_id, data = data)
+pvals.34 = data.frame(p_value.34 = pf(summary(model.34)$fstatistic[,1], summary(model.34)$fstatistic[,2],summary(model.34)$fstatistic[,3], lower = F),
+                      p_value.21 = pf(summary(model.21)$fstatistic[,1], summary(model.21)$fstatistic[,2],summary(model.21)$fstatistic[,3], lower = F))
 model.34.data <- data.frame(row = 1:156,
                             coef = coefficients(model.34),
                             conf = confint(model.34),
@@ -709,7 +731,7 @@ model.34.exclude <- data.frame(cusip_id = model.34.exclude[model.34.exclude$tota
 model.34.dataset <- data[!data$cusip_id %in% model.34.exclude$cusip_id,]
 
 ## d ~ spread + log(vol_tot) + log(trades)## 
-model.35 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) | cusip_id, data = model.35.dataset)
+model.35 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) | cusip_id, data = data)
 model.35.data <- data.frame(row = 1:160,
                             coef = coefficients(model.35),
                             conf = confint(model.35),
@@ -742,7 +764,7 @@ model.35.exclude <- data.frame(cusip_id = model.35.exclude[model.35.exclude$tota
 model.35.dataset <- data[!data$cusip_id %in% model.35.exclude$cusip_id,]
 
 ## d ~ spread + log(vol_tot) + sqrt(trades)## 
-model.36 <- lmList(d ~ spread1 + log(vol_tot) + sqrt(trades) | cusip_id, data = model.36.dataset)
+model.36 <- lmList(d ~ spread1 + log(vol_tot) + sqrt(trades) | cusip_id, data = data)
 model.36.data <- data.frame(row = 1:158,
                             coef = coefficients(model.36),
                             conf = confint(model.36),
@@ -777,7 +799,7 @@ model.36.exclude <- data.frame(cusip_id = model.36.exclude[model.36.exclude$tota
 model.36.dataset <- data[!data$cusip_id %in% model.36.exclude$cusip_id,]
 
 ## d ~ spread + sqrt(vol_tot) + log(trades)## 
-model.37 <- lmList(d ~ spread1 + sqrt(vol_tot) + log(trades) | cusip_id, data = model.37.dataset)
+model.37 <- lmList(d ~ spread1 + sqrt(vol_tot) + log(trades) | cusip_id, data = data)
 model.37.data <- data.frame(row = 1:157,
                             coef = coefficients(model.37),
                             conf = confint(model.37),
@@ -814,7 +836,7 @@ model.37.dataset <- data[!data$cusip_id %in% model.37.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + russell3000_std## 
-model.38 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + russell3000_std | cusip_id, data = model.38.dataset)
+model.38 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + russell3000_std | cusip_id, data = data)
 model.38.data <- data.frame(row = 1:156,
                             coef = coefficients(model.38),
                             conf = confint(model.38),
@@ -853,7 +875,7 @@ model.38.dataset <- data[!data$cusip_id %in% model.38.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + log(russell3000_std)## 
-model.39 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(russell3000_std) | cusip_id, data = model.39.dataset)
+model.39 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(russell3000_std) | cusip_id, data = data)
 model.39.data <- data.frame(row = 1:156,
                             coef = coefficients(model.39),
                             conf = confint(model.39),
@@ -892,7 +914,7 @@ model.39.dataset <- data[!data$cusip_id %in% model.39.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + sqrt(russell3000_std)## 
-model.40 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(russell3000_std) | cusip_id, data = model.40.dataset)
+model.40 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(russell3000_std) | cusip_id, data = data)
 model.40.data <- data.frame(row = 1:156,
                             coef = coefficients(model.40),
                             conf = confint(model.40),
@@ -932,7 +954,7 @@ model.40.dataset <- data[!data$cusip_id %in% model.40.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + spbond_std## 
-model.41 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + spbond_std | cusip_id, data = model.41.dataset)
+model.41 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + spbond_std | cusip_id, data = data)
 model.41.data <- data.frame(row = 1:157,
                             coef = coefficients(model.41),
                             conf = confint(model.41),
@@ -971,7 +993,7 @@ model.41.dataset <- data[!data$cusip_id %in% model.41.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + log(spbond_std)## 
-model.42 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(spbond_std) | cusip_id, data = model.42.dataset)
+model.42 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + log(spbond_std) | cusip_id, data = data)
 model.42.data <- data.frame(row = 1:157,
                             coef = coefficients(model.42),
                             conf = confint(model.42),
@@ -1010,7 +1032,7 @@ model.42.dataset <- data[!data$cusip_id %in% model.42.exclude$cusip_id,]
 
 
 ## d ~ spread + log(vol_tot) + log(trades) + sqrt(spbond_std)## 
-model.43 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(spbond_std) | cusip_id, data = model.43.dataset)
+model.43 <- lmList(d ~ spread1 + log(vol_tot) + log(trades) + sqrt(spbond_std) | cusip_id, data = data)
 model.43.data <- data.frame(row = 1:157,
                             coef = coefficients(model.43),
                             conf = confint(model.43),
