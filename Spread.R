@@ -176,3 +176,4 @@ names(mean)[7] <- paste("spread_quantile")
 data <- merge(data, mean, by.x = c("cusip_id", "trd_exctn_dt"), by.y = c("cusip_id", "trd_exctn_dt"), all = TRUE)
 statsNA(data$spread_quantile)
 h3 <- hist(mean$spread_quantile)
+
