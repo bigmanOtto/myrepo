@@ -7,7 +7,11 @@ data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
 
-
+turnover <- data$p_avg*data$vol_tot/data$outstanding
+data$turnover <- as.numeric(turnover)
+data=data[!is.na(data$turnover),]
+data=data[!is.nan(data$turnover),]
+data=data[!is.infinite(data$turnover),]
 
 data <- data[!is.na(data$HHI),]
 data <- data[data$HHI<10.488,]
@@ -240,7 +244,7 @@ qqnorm(res.16)
 qqline(res.16)
 
 ##HHI~rating+spread+log(vol_tot)+log(trades)
-model.17 <- lm(HHI ~ credit+spread+log(vol_tot)+log(trades), data=data)
+model.17 <- lm(HHI ~ credit+spread1+log(vol_tot)+log(trades), data=data)
 
 
 model.17.data <- data.frame(coef = coefficients(model.17),
@@ -255,7 +259,7 @@ qqline(res.17)
 
 
 ##HHI~type+spread+log(vol_tot)+log(trades)
-model.18 <- lm(HHI ~ type+spread+log(vol_tot)+trades, data=data)
+model.18 <- lm(HHI ~ type+spread1+log(vol_tot)+trades, data=data)
 
 
 model.18.data <- data.frame(coef = coefficients(model.18),
@@ -267,3 +271,65 @@ res.18<-residuals(model.18)
 hist(res.18)
 qqnorm(res.18)
 qqline(res.18)
+
+##HHI~turnover
+model.19<-lm(HHI~turnover, data=data)
+
+##HHI~rating+spread+log(vol_tot)+log(trades)+sqrt(turnover)
+model.20 <- lm(HHI ~ credit+spread1+log(vol_tot)+log(trades)+sqrt(turnover), data=data)
+
+
+model.20.data <- data.frame(coef = coefficients(model.20),
+                            conf = confint(model.20),
+                            p_value = summary(model.20)$coef[2,4],
+                            r_squared = summary(model.20)$r.squared)
+res.20<-residuals(model.20)
+
+hist(res.20)
+qqnorm(res.20)
+qqline(res.20)
+
+
+##HHI~rating+spread+log(vol_tot)+sqrt(trades)
+model.21 <- lm(HHI ~ credit+spread1+log(vol_tot)+sqrt(trades), data=data)
+
+
+model.21.data <- data.frame(coef = coefficients(model.21),
+                            conf = confint(model.21),
+                            p_value = summary(model.21)$coef[2,4],
+                            r_squared = summary(model.21)$r.squared)
+res.21<-residuals(model.21)
+
+hist(res.21)
+qqnorm(res.21)
+qqline(res.21)
+
+##HHI~rating+spread+sqrt(vol_tot)+sqrt(trades)
+model.22 <- lm(HHI ~ credit+sqrt(spread1)+sqrt(vol_tot)+sqrt(trades), data=data)
+
+
+model.22.data <- data.frame(coef = coefficients(model.22),
+                            conf = confint(model.22),
+                            p_value = summary(model.22)$coef[2,4],
+                            r_squared = summary(model.22)$r.squared)
+res.22<-residuals(model.22)
+
+hist(res.22)
+qqnorm(res.22)
+qqline(res.22)
+
+##HHI~rating+spread+log(vol_tot)+log(trades)+turnover
+model.23 <- lm(HHI ~ credit+spread1+log(vol_tot)+log(trades)+turnover, data=data)
+
+
+model.23.data <- data.frame(coef = coefficients(model.23),
+                            conf = confint(model.23),
+                            p_value = summary(model.23)$coef[2,4],
+                            r_squared = summary(model.23)$r.squared)
+res.23<-residuals(model.23)
+
+hist(res.23)
+qqnorm(res.23)
+qqline(res.23)
+
+

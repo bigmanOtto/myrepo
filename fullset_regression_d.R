@@ -220,7 +220,7 @@ qqnorm(res.16)
 qqline(res.16)
 
 ##d~rating+spread+log(vol_tot)+log(trades)
-model.17 <- lm(d ~ credit+spread+log(vol_tot)+log(trades), data=goodbonds)
+model.17 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades), data=goodbonds)
 
 
 model.17.data <- data.frame(coef = coefficients(model.17),
@@ -235,7 +235,7 @@ qqline(res.17)
 
 
 ##d~type+spread+log(vol_tot)+log(trades)
-model.18 <- lm(d ~ type+spread+log(vol_tot)+trades, data=data)
+model.18 <- lm(d ~ type+spread1+log(vol_tot)+trades, data=data)
 
 
 model.18.data <- data.frame(coef = coefficients(model.18),
@@ -250,3 +250,62 @@ qqline(res.18)
 
 ##d~turnover
 model.19<-lm(d~turnover, data=data)
+
+##d~rating+spread+log(vol_tot)+log(trades)+sqrt(turnover)
+model.20 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades)+sqrt(turnover), data=goodbonds)
+
+
+model.20.data <- data.frame(coef = coefficients(model.20),
+                            conf = confint(model.20),
+                            p_value = summary(model.20)$coef[2,4],
+                            r_squared = summary(model.20)$r.squared)
+res.20<-residuals(model.20)
+
+hist(res.20)
+qqnorm(res.20)
+qqline(res.20)
+
+
+##d~rating+spread+log(vol_tot)+sqrt(trades)
+model.21 <- lm(d ~ credit+spread1+log(vol_tot)+sqrt(trades), data=goodbonds)
+
+
+model.21.data <- data.frame(coef = coefficients(model.21),
+                            conf = confint(model.21),
+                            p_value = summary(model.21)$coef[2,4],
+                            r_squared = summary(model.21)$r.squared)
+res.21<-residuals(model.21)
+
+hist(res.21)
+qqnorm(res.21)
+qqline(res.21)
+
+##d~rating+spread+sqrt(vol_tot)+sqrt(trades)
+model.22 <- lm(d ~ credit+sqrt(spread1)+sqrt(vol_tot)+sqrt(trades), data=goodbonds)
+
+
+model.22.data <- data.frame(coef = coefficients(model.22),
+                            conf = confint(model.22),
+                            p_value = summary(model.22)$coef[2,4],
+                            r_squared = summary(model.22)$r.squared)
+res.22<-residuals(model.22)
+
+hist(res.22)
+qqnorm(res.22)
+qqline(res.22)
+
+##d~rating+spread+log(vol_tot)+log(trades)+turnover
+model.23 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades)+turnover, data=goodbonds)
+
+
+model.23.data <- data.frame(coef = coefficients(model.23),
+                            conf = confint(model.23),
+                            p_value = summary(model.23)$coef[2,4],
+                            r_squared = summary(model.23)$r.squared)
+res.23<-residuals(model.23)
+
+hist(res.23)
+qqnorm(res.23)
+qqline(res.23)
+
+
