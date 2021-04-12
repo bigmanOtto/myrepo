@@ -14,7 +14,7 @@ data=data[!is.infinite(data$turnover),]
 
 data <- data[data$d<0.896,]
 
-goodbonds<- data[data$cusip_id!="02209SBD4" & data$cusip_id!="06051GFD6" & data$cusip_id!="126650CV0" & data$cusip_id!="126650CX6" & data$cusip_id!="172967HC8" & data$cusip_id!="172967KE0" & data$cusip_id!="38145XAA1" & data$cusip_id!="46625HHS2" & data$cusip_id!="71654QCK6",]
+goodbonds <- data[data$cusip_id!="02209SBD4" & data$cusip_id!="126650CV0",]
 
 
 
@@ -220,7 +220,7 @@ qqnorm(res.16)
 qqline(res.16)
 
 ##d~rating+spread+log(vol_tot)+log(trades)
-model.17 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades), data=goodbonds)
+model.17 <- lm(d ~ spread1+log(vol_tot)+log(trades)+credit, data=goodbonds)
 
 
 model.17.data <- data.frame(coef = coefficients(model.17),
@@ -308,4 +308,380 @@ hist(res.23)
 qqnorm(res.23)
 qqline(res.23)
 
+
+
+
+################################################################################
+
+### Analysing model 17 ###
+#goodbonds$credit <- relevel(as.factor(goodbonds$credit), ref = "AAA")
+goodbonds$credit <- factor(goodbonds$credit, levels = c("AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "NR"))
+model.17 <- lm(d ~ spread1+log(vol_tot)+log(trades)+credit, data=goodbonds)
+
+pred.17 <- data.frame(goodbonds, 
+                      pred = predict(model.17, interval = "prediction"),
+                      conf = predict(model.17, interval = "confidence"),
+                      e = model.17$residuals)
+elims.17 <- abs(max(pred.17$e)) * c(-1,1)
+
+#Residuals 
+ggplot(data = pred.17, aes(x = pred.fit, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.17) + 
+  labs(x = "Predicted values", y = "Residuals", title = "Residuals vs fitted values for model 17" )
+
+
+res.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.17) + 
+  labs(x = "Bid-ask spread ($)", y = "Residuals", title = "Residuals vs bid-ask spread for model 17" )
+
+
+res.vol.17 <- ggplot(data = pred.17, aes(x = vol_tot, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.17) + 
+  labs(x = "Daily total trading volume", y = "Residuals", title = "Residuals vs trading volume for model 17" )
+
+
+res.trades.17 <- ggplot(data = pred.17, aes(x = trades, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.17) + 
+  labs(x = "Number of daily trades", y = "Residuals", title = "Residuals vs daily trades for model 17" )
+
+
+res.rating.17 <- ggplot(data = pred.17, aes(x = credit, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.17) + 
+  labs(x = "Rating", y = "Residuals", title = "Residuals vs rating for model 17" )
+
+
+ggarrange(res.spread.17, res.vol.17, res.trades.17, res.rating.17, ncol = 2, nrow = 2)
+
+#QQ plot
+ggplot(data = pred.17, aes(sample=e)) + 
+  geom_qq(size = 1) + 
+  geom_qq_line()
+
+#Histogram
+hist(pred.17$e, xlab = "Residuals", main = "Histogram of residuals") 
+ggplot(data = pred.17, aes(x = e)) +
+  geom_histogram(bins = 30)
+
+
+#Leverage 
+pred.17$v <- influence(model.17)$hat
+n.17 <- nrow(pred.17)
+pplus1.17 <- length(model.17$coefficients)
+
+ggplot(data = pred.17, aes(x = pred.fit, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.17, color = "red") +
+  geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Fitted values", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs fitted values")
+
+lev.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.17, color = "red") +
+  geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Bid-ask spread", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs bid-ask spread")
+
+lev.vol.17 <- ggplot(data = pred.17, aes(x = vol_tot, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.17, color = "red") +
+  geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Daily total trading volume", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs daily trading volume")
+
+lev.trades.17 <- ggplot(data = pred.17, aes(x = trades, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.17, color = "red") +
+  geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Number of daily trades", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs daily trades")
+
+lev.rating.17 <- ggplot(data = pred.17, aes(x = credit, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.17, color = "red") +
+  geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Rating", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs rating")
+
+ggarrange(lev.spread.17, lev.vol.17, lev.trades.17, lev.rating.17, ncol = 2, nrow = 2)
+
+high_leverage.17 <- which(pred.17$v > 0.0015)
+
+#Studentized residuals
+pred.17$r <- rstudent(model.17)
+
+ggplot(data = pred.17, aes(x = pred.fit, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Fitted value", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Bid-ask spread", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.vol.17 <- ggplot(data = pred.17, aes(x = vol_tot, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Daily total trading volume", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.trades.17 <- ggplot(data = pred.17, aes(x = trades, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Number of daily trades", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.rating.17 <- ggplot(data = pred.17, aes(x = credit, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Rating", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+ggarrange(sres.spread.17, sres.vol.17, sres.trades.17, sres.rating.17, ncol = 2, nrow = 2)
+
+#Cook's Distance
+pred.17$D <- cooks.distance(model.17)
+
+ggplot(data = pred.17, aes(x = pred.fit, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Fitted value", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Bid-ask spread", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.vol.17 <- ggplot(data = pred.17, aes(x = vol_tot, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Daily total trading volume", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.trades.17 <- ggplot(data = pred.17, aes(x = trades, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Number of daily trades", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.rating.17 <- ggplot(data = pred.17, aes(x = credit, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Rating", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+ggarrange(cook.spread.17, cook.vol.17, cook.trades.17, cook.rating.17, ncol = 2, nrow = 2)
+
+
+
+################################################################################
+
+### Analysing model 20 ###
+#goodbonds$credit <- relevel(as.factor(goodbonds$credit), ref = "AAA")
+goodbonds$credit <- factor(goodbonds$credit, levels = c("AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "NR"))
+model.20 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades)+sqrt(turnover), data=goodbonds)
+
+pred.20 <- data.frame(goodbonds, 
+                      pred = predict(model.20, interval = "prediction"),
+                      conf = predict(model.20, interval = "confidence"),
+                      e = model.20$residuals)
+elims.20 <- abs(max(pred.20$e)) * c(-1,1)
+
+#Residuals 
+ggplot(data = pred.20, aes(x = pred.fit, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.20) + 
+  labs(x = "Predicted values", y = "Residuals", title = "Residuals vs fitted values for model 20" )
+
+
+res.spread.20 <- ggplot(data = pred.20, aes(x = spread1, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.20) + 
+  labs(x = "Bid-ask spread ($)", y = "Residuals", title = "Residuals vs bid-ask spread for model 20" )
+
+
+res.vol.20 <- ggplot(data = pred.20, aes(x = vol_tot, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.20) + 
+  labs(x = "Daily total trading volume", y = "Residuals", title = "Residuals vs trading volume for model 20" )
+
+
+res.trades.20 <- ggplot(data = pred.20, aes(x = trades, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.20) + 
+  labs(x = "Number of daily trades", y = "Residuals", title = "Residuals vs daily trades for model 20" )
+
+
+res.rating.20 <- ggplot(data = pred.20, aes(x = credit, y = e)) + 
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 0) +
+  expand_limits(y = elims.20) + 
+  labs(x = "Rating", y = "Residuals", title = "Residuals vs rating for model 20" )
+
+
+ggarrange(res.spread.20, res.vol.20, res.trades.20, res.rating.20, ncol = 2, nrow = 2)
+
+#QQ plot
+ggplot(data = pred.20, aes(sample=e)) + 
+  geom_qq(size = 1) + 
+  geom_qq_line()
+
+#Histogram
+hist(pred.20$e, xlab = "Residuals", main = "Histogram of residuals") 
+ggplot(data = pred.20, aes(x = e)) +
+  geom_histogram(bins = 30)
+
+
+#Leverage 
+pred.20$v <- influence(model.20)$hat
+n.20 <- nrow(pred.20)
+pplus1.20 <- length(model.20$coefficients)
+
+ggplot(data = pred.20, aes(x = pred.fit, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.20, color = "red") +
+  geom_hline(yintercept = 2*pplus1.20/n.20, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Fitted values", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs fitted values")
+
+lev.spread.20 <- ggplot(data = pred.20, aes(x = spread1, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.20, color = "red") +
+  geom_hline(yintercept = 2*pplus1.20/n.20, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Bid-ask spread", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs bid-ask spread")
+
+lev.vol.20 <- ggplot(data = pred.20, aes(x = vol_tot, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.20, color = "red") +
+  geom_hline(yintercept = 2*pplus1.20/n.20, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Daily total trading volume", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs daily trading volume")
+
+lev.trades.20 <- ggplot(data = pred.20, aes(x = trades, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.20, color = "red") +
+  geom_hline(yintercept = 2*pplus1.20/n.20, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Number of daily trades", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs daily trades")
+
+lev.rating.20 <- ggplot(data = pred.20, aes(x = credit, y = v)) +
+  geom_point(size = 0.5) +
+  geom_hline(yintercept = 1/n.20, color = "red") +
+  geom_hline(yintercept = 2*pplus1.20/n.20, linetype = "dotted", color = "red", size = 1) +
+  labs(x = "Rating", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs rating")
+
+ggarrange(lev.spread.20, lev.vol.20, lev.trades.20, lev.rating.20, ncol = 2, nrow = 2)
+
+high_leverage.20 <- which(pred.20$v > 0.005)
+
+#Studentized residuals
+pred.20$r <- rstudent(model.20)
+
+ggplot(data = pred.20, aes(x = pred.fit, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Fitted value", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.spread.20 <- ggplot(data = pred.20, aes(x = spread1, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Bid-ask spread", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.vol.20 <- ggplot(data = pred.20, aes(x = vol_tot, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Daily total trading volume", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.trades.20 <- ggplot(data = pred.20, aes(x = trades, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Number of daily trades", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+sres.rating.20 <- ggplot(data = pred.20, aes(x = credit, y = r)) +
+  geom_point() +
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
+  geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Rating", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+
+ggarrange(sres.spread.20, sres.vol.20, sres.trades.20, sres.rating.20, ncol = 2, nrow = 2)
+
+#Cook's Distance
+pred.20$D <- cooks.distance(model.20)
+
+ggplot(data = pred.20, aes(x = pred.fit, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Fitted value", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.spread.20 <- ggplot(data = pred.20, aes(x = spread1, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Bid-ask spread", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.vol.20 <- ggplot(data = pred.20, aes(x = vol_tot, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Daily total trading volume", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.trades.20 <- ggplot(data = pred.20, aes(x = trades, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Number of daily trades", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+cook.rating.20 <- ggplot(data = pred.20, aes(x = credit, y = D)) +
+  geom_point() + 
+  geom_hline(yintercept = 0) +
+  geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
+  geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
+  labs(x = "Rating", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+ggarrange(cook.spread.20, cook.vol.20, cook.trades.20, cook.rating.20, ncol = 2, nrow = 2)
 
