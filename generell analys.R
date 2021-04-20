@@ -48,5 +48,21 @@ avg_ILLIQ_IG=mean(dataIG_illiq_mid$illiq_mid)
 
 plot(ddply(data_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)))
 
-plot(ddply(dataIG_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)))
+plot(ddply(dataIG_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)), ylim=c(0,0.0000000004))
 points(ddply(dataHY_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)),col="red")
+
+
+
+## correlation matrix
+corrtest <- data[,c(15,43)]
+corrtest$trades<-unlist(trades[,3])
+corrtest$spread<-unlist(kalman)
+
+corrtest=corrtest[!is.na(corrtest$turnover),]
+corrtest=corrtest[!is.nan(corrtest$turnover),]
+corrtest=corrtest[!is.infinite(corrtest$turnover),]
+
+cor(corrtest)
+
+
+##plots
