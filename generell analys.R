@@ -61,8 +61,9 @@ corrtest$spread<-unlist(kalman)
 corrtest=corrtest[!is.na(corrtest$turnover),]
 corrtest=corrtest[!is.nan(corrtest$turnover),]
 corrtest=corrtest[!is.infinite(corrtest$turnover),]
+matrix<-cor(corrtest)
 
-cor(corrtest)
+
 
 
 ##plots
