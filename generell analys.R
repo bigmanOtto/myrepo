@@ -33,8 +33,8 @@ avg_HHI_IG=mean(dataIG_HHI$HHI)
 
 plot(ddply(data_HHI, .(trd_exctn_dt), summarize, daily_mean_d = mean(HHI)))
 
-plot(ddply(dataIG_HHI, .(trd_exctn_dt), summarize, daily_mean_d = mean(HHI)))
-points(ddply(dataHY_HHI, .(trd_exctn_dt), summarize, daily_mean_d = mean(HHI)),col="red")
+plot(ddply(dataIG_HHI, .(trd_exctn_dt), summarize, daily_mean_HHI = mean(HHI)),ylim=c(0,10))
+points(ddply(dataHY_HHI, .(trd_exctn_dt), summarize, daily_mean_HHI = mean(HHI)),col="red")
 
 data_illiq_mid <- data[!is.na(data$illiq_mid),]
 
@@ -48,8 +48,8 @@ avg_ILLIQ_IG=mean(dataIG_illiq_mid$illiq_mid)
 
 plot(ddply(data_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)))
 
-plot(ddply(dataIG_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)), ylim=c(0,0.0000000004))
-points(ddply(dataHY_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_d = mean(illiq_mid)),col="red")
+plot(ddply(dataIG_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_ILLIQ = mean(illiq_mid)), ylim=c(0,0.0000000004))
+points(ddply(dataHY_illiq_mid, .(trd_exctn_dt), summarize, daily_mean_ILLIQ = mean(illiq_mid)),col="red")
 
 
 

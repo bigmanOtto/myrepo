@@ -707,3 +707,29 @@ cook.turnover.20 <- ggplot(data = pred.20, aes(x = turnover, y = D)) +
   geom_hline(yintercept = 4/n.20, color = "red", linetype = "dashed", size = 1) +
   geom_point(data = pred.20[high_leverage.20, ], color = "green", shape = 24, size = 3) +
   labs(x = "Turnover ratio", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+
+df_r2 <- data.frame(model = c(16, 17, 18, 20, 21, 22, 23),
+                    R2 = round(c(summary(model.16)$r.squared,
+                                 summary(model.17)$r.squared, 
+                                 summary(model.18)$r.squared,
+                                 summary(model.20)$r.squared,
+                                 summary(model.21)$r.squared,
+                                 summary(model.22)$r.squared,
+                                 summary(model.23)$r.squared),5 ),
+                    R2adj = round(c(summary(model.16)$adj.r.squared,
+                                    summary(model.17)$adj.r.squared, 
+                                    summary(model.18)$adj.r.squared,
+                                    summary(model.20)$adj.r.squared,
+                                    summary(model.21)$adj.r.squared,
+                                    summary(model.22)$adj.r.squared,
+                                    summary(model.23)$adj.r.squared),5),
+                    round(AIC(model.16, model.17, model.18, model.20, model.21, model.22, model.23)),
+                    round(BIC(model.16, model.17, model.18, model.20, model.21, model.22, model.23)))
+goodbonds$credit <- relevel(as.factor(goodbonds$credit), ref = "AAA")
+model.17 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades), data=goodbonds)
+model.20 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades)+sqrt(turnover), data=data)
+model.21 <- lm(d ~ credit+spread1+log(vol_tot)+sqrt(trades), data=data)
+model.23 <- lm(d ~ credit+spread1+log(vol_tot)+log(trades)+turnover, data=data)
+
+anova(model.17, model.23)
+anova(model.17, model.20)
