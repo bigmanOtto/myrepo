@@ -329,51 +329,52 @@ ggplot(data = pred.17, aes(x = pred.fit, y = e)) +
   geom_point(size = 0.5) +
   geom_hline(yintercept = 0) +
   expand_limits(y = elims.17) + 
-  labs(x = "Fitted value", y = "Residuals", title = "Residuals vs fitted values for model 17" )
+  labs(x = "Fitted value", y = "Residuals")
 
 
 res.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = e)) + 
   geom_point(size = 0.5) +
   geom_hline(yintercept = 0) +
   expand_limits(y = elims.17) + 
-  labs(x = "Bid-ask spread ($)", y = "Residuals", title = "Residuals vs bid-ask spread" )
+  labs(x = "Bid-ask spread ($)", y = "Residuals")
 
 
-res.vol.17 <- ggplot(data = pred.17, aes(x = vol_tot, y = e)) + 
+res.vol.17 <- ggplot(data = pred.17, aes(x = log(vol_tot), y = e)) + 
   geom_point(size = 0.5) +
   geom_hline(yintercept = 0) +
   expand_limits(y = elims.17) + 
-  labs(x = "Trading volume", y = "Residuals", title = "Residuals vs daily total trading volume" )
+  labs(x = "log(Daily volume)", y = "Residuals")
 
 
-res.trades.17 <- ggplot(data = pred.17, aes(x = trades, y = e)) + 
+res.trades.17 <- ggplot(data = pred.17, aes(x = log(trades), y = e)) + 
   geom_point(size = 0.5) +
   geom_hline(yintercept = 0) +
   expand_limits(y = elims.17) + 
-  labs(x = "Daily trades", y = "Residuals", title = "Residuals vs number of daily trades" )
+  labs(x = "log(Daily trades)", y = "Residuals")
 
 
 res.rating.17 <- ggplot(data = pred.17, aes(x = credit, y = e)) + 
   geom_point(size = 0.5) +
   geom_hline(yintercept = 0) +
   expand_limits(y = elims.17) + 
-  labs(x = "Rating", y = "Residuals", title = "Residuals vs rating" )
+  labs(x = "Credit rating", y = "Residuals")
 
 
 ggarrange(res.spread.17, res.vol.17, res.trades.17, res.rating.17, ncol = 2, nrow = 2)
 
 #QQ plot
-ggplot(data = pred.17, aes(sample=e)) + 
+qq17<-ggplot(data = pred.17, aes(sample=e)) + 
   geom_qq(size = 1) + 
   geom_qq_line() + 
-  labs(x = "Theoretical", y = "Sample", title = "QQ plot")
+  labs(x = "Theoretical", y = "Sample")
 
 #Histogram
 hist(pred.17$e, xlab = "Residuals", main = "Histogram of residuals") 
-ggplot(data = pred.17, aes(x = e)) +
+hist17<-ggplot(data = pred.17, aes(x = e)) +
   geom_histogram(bins = 50) + 
-  labs(y = "Frequency", x = "Residuals", title = "Histogram of residuals")
+  labs(y = "Frequency", x = "Residuals")
 
+ggarrange(qq17, hist17)
 
 #Leverage 
 pred.17$v <- influence(model.17)$hat
@@ -384,7 +385,7 @@ ggplot(data = pred.17, aes(x = pred.fit, y = v)) +
   geom_point(size = 0.5) +
   geom_hline(yintercept = 1/n.17, color = "red") +
   geom_hline(yintercept = 2*pplus1.17/n.17, linetype = "dotted", color = "red", size = 1) +
-  labs(x = "Fitted value", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n", title = "Leverage vs fitted values")
+  labs(x = "Fitted value", y = "Leverage", caption = "Red = 1/n, Red dotted = 2*(p+1)/n")
 
 lev.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = v)) +
   geom_point(size = 0.5) +
@@ -423,7 +424,7 @@ ggplot(data = pred.17, aes(x = pred.fit, y = r)) +
   geom_hline(yintercept = c(-2,2), color = "red", linetype = "dashed", size = 1) +
   geom_hline(yintercept = c(-4,4), color = "red", linetype = "dotted", size = 1) +
   geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
-  labs(x = "Fitted value", y = "Studentized residuals", caption = "Green triangles = High leverage observations", title = "Studentized residuals")
+  labs(x = "Fitted value", y = "Studentized residuals", caption = "Green triangles = High leverage (>0.0015) observations\n Red dashed = \u00B1 2, Red dotted = \u00B1 4")
 
 sres.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = r)) +
   geom_point() +
@@ -467,7 +468,7 @@ ggplot(data = pred.17, aes(x = pred.fit, y = D)) +
   geom_hline(yintercept = 0) +
   geom_hline(yintercept = 4/n.17, color = "red", linetype = "dashed", size = 1) +
   geom_point(data = pred.17[high_leverage.17, ], color = "green", shape = 24, size = 3) +
-  labs(x = "Fitted value", y = "Cook's distance", title = "Cook's distance", caption ="Red dashed = 4/n, Green triangles = High leverage observations")
+  labs(x = "Fitted value", y = "Cook's distance", caption ="Green triangles = High leverage (>0.0015) observations\nRed dashed = 4/n")
 
 cook.spread.17 <- ggplot(data = pred.17, aes(x = spread1, y = D)) +
   geom_point() + 
