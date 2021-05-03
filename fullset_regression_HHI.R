@@ -276,6 +276,7 @@ qqline(res.18)
 model.19<-lm(HHI~turnover, data=data)
 
 ##HHI~rating+spread+log(vol_tot)+log(trades)+sqrt(turnover)
+data$credit <- relevel(as.factor(data$credit), ref = "AAA")
 model.20 <- lm(HHI ~ credit+spread1+log(vol_tot)+log(trades)+sqrt(turnover), data=data)
 
 
