@@ -11,7 +11,7 @@ avg_d_HY=mean(dataHY$d)
 avg_d_IG=mean(dataIG$d)
 
 library(plyr)
-
+par(mfrow=c(1,1))
 plot(ddply(data, .(trd_exctn_dt), summarize, daily_mean_d = mean(d)))
 
 plot(ddply(dataIG, .(trd_exctn_dt), summarize, daily_mean_d = mean(d)))

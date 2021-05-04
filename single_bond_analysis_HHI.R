@@ -6,6 +6,7 @@ names(trades)[3] <- paste("trades")
 data <- DAILY_all
 data$trades <- trades$trades
 data$spread1 <- unlist(kalman)
+data <- data[!is.na(data$HHI),]
 
 subdata_IG1<-data[5:502,] ##00206RBD3
 subdata_IG1<-subdata_IG1[subdata_IG1$HHI<10,]
@@ -30,13 +31,13 @@ data$trd_exctn_dt <- as.Date.character(data$trd_exctn_dt, format = "%Y%m%d")
 is_significant <- 0.05
 
 ##model 1
-model.1_IG1<-lm(HHI~vol_tot,data=subdata_IG1)
-model.1_IG2<-lm(HHI~vol_tot,data=subdata_IG2)
-model.1_IG3<-lm(HHI~vol_tot,data=subdata_IG3)
+model.1_IG1<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_IG1)
+model.1_IG2<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_IG2)
+model.1_IG3<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_IG3)
 
-model.1_HY1<-lm(HHI~vol_tot,data=subdata_HY1)
-model.1_HY2<-lm(HHI~vol_tot,data=subdata_HY2)
-model.1_HY3<-lm(HHI~vol_tot,data=subdata_HY3)
+model.1_HY1<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_HY1)
+model.1_HY2<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_HY2)
+model.1_HY3<-lm(HHI~spread1 + log(vol_tot) + log(trades),data=subdata_HY3)
 
 res.1_IG1<-residuals(model.1_IG1)
 res.1_IG2<-residuals(model.1_IG2)
